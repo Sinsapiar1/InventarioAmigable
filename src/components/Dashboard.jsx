@@ -1,162 +1,209 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  orderBy, 
   limit,
-  onSnapshot,
+  onSnapshot 
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
-import {
-  Package,
-  TrendingUp,
-  AlertTriangle,
+import { 
+  Package, 
+  TrendingUp, 
+  AlertTriangle, 
   DollarSign,
   ArrowUp,
   ArrowDown,
   Eye,
   Plus,
   Search,
+  RefreshCw,
+  Calendar,
+  BarChart
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
     totalProductos: 0,
     productosConStockBajo: 0,
     valorTotalInventario: 0,
     movimientosHoy: 0,
+    movimientosSemana: 0,
+    productosCreados: 0
   });
   const [recentProducts, setRecentProducts] = useState([]);
   const [recentMovements, setRecentMovements] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [error, setError] = useState('');
 
-  // Cargar datos del dashboard
+  // Cargar datos al montar el componente
   useEffect(() => {
     if (!currentUser) return;
-
-    const loadDashboardData = async () => {
-      try {
-        await Promise.all([
-          loadStats(),
-          loadRecentProducts(),
-          loadRecentMovements(),
-          loadLowStockProducts(),
-        ]);
-      } catch (error) {
-        console.error('Error cargando dashboard:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadDashboardData();
-
-    // Suscribirse a cambios en tiempo real para productos
-    const productosRef = collection(
-      db,
-      'usuarios',
-      currentUser.uid,
-      'almacenes',
-      'principal',
-      'productos'
-    );
-    const unsubscribe = onSnapshot(productosRef, () => {
-      loadStats();
-      loadRecentProducts();
-      loadLowStockProducts();
-    });
-
-    return () => unsubscribe();
+    
+    // Configurar listeners en tiempo real
+    setupRealtimeListeners();
   }, [currentUser]);
+
+  // Configurar listeners en tiempo real
+  const setupRealtimeListeners = () => {
+    if (!currentUser) return;
+
+    // Listener para productos
+    const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
+    const unsubscribeProducts = onSnapshot(productosRef, 
+      (snapshot) => {
+        console.log('Productos actualizados en tiempo real');
+        loadStats();
+        loadRecentProducts();
+        loadLowStockProducts();
+      },
+      (error) => {
+        console.error('Error en listener de productos:', error);
+      }
+    );
+
+    // Listener para movimientos
+    const movimientosRef = collection(db, 'movimientos');
+    const movimientosQuery = query(
+      movimientosRef,
+      where('usuarioId', '==', currentUser.uid),
+      orderBy('fecha', 'desc'),
+      limit(10)
+    );
+    
+    const unsubscribeMovements = onSnapshot(movimientosQuery,
+      (snapshot) => {
+        console.log('Movimientos actualizados en tiempo real');
+        loadStats();
+        loadRecentMovements();
+      },
+      (error) => {
+        console.error('Error en listener de movimientos:', error);
+      }
+    );
+
+    // Cleanup listeners
+    return () => {
+      unsubscribeProducts();
+      unsubscribeMovements();
+    };
+  };
+
+  // Cargar todos los datos del dashboard
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      await Promise.all([
+        loadStats(),
+        loadRecentProducts(),
+        loadRecentMovements(),
+        loadLowStockProducts()
+      ]);
+      
+    } catch (error) {
+      console.error('Error cargando dashboard:', error);
+      setError('Error al cargar los datos del dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Cargar estadísticas generales
   const loadStats = async () => {
     try {
-      // Productos del almacén principal
-      const productosRef = collection(
-        db,
-        'usuarios',
-        currentUser.uid,
-        'almacenes',
-        'principal',
-        'productos'
-      );
+      // Obtener productos
+      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
       const productosSnapshot = await getDocs(productosRef);
-
+      
       let totalProductos = 0;
       let valorTotal = 0;
       let stockBajo = 0;
+      let productosCreados = 0;
+
+      // Fecha de hoy para comparaciones
+      const hoy = new Date();
+      const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+      const inicioSemana = new Date(hoy.getTime() - (7 * 24 * 60 * 60 * 1000));
 
       productosSnapshot.forEach((doc) => {
         const data = doc.data();
         totalProductos++;
-
-        // Calcular valor total (cantidad * precio de venta)
-        const valorProducto =
-          (data.cantidadActual || 0) * (data.precioVenta || 0);
+        
+        // Calcular valor total
+        const valorProducto = (data.cantidadActual || 0) * (data.precioVenta || 0);
         valorTotal += valorProducto;
-
-        // Productos con stock bajo (menos de cantidadMinima)
+        
+        // Productos con stock bajo
         if ((data.cantidadActual || 0) <= (data.cantidadMinima || 5)) {
           stockBajo++;
         }
+
+        // Productos creados hoy
+        if (data.fechaCreacion) {
+          const fechaCreacion = new Date(data.fechaCreacion);
+          if (fechaCreacion >= inicioHoy) {
+            productosCreados++;
+          }
+        }
       });
 
-      // Movimientos de hoy
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-
+      // Obtener movimientos de hoy
       const movimientosRef = collection(db, 'movimientos');
-      const movimientosQuery = query(
+      const movimientosHoyQuery = query(
         movimientosRef,
         where('usuarioId', '==', currentUser.uid),
-        where('fecha', '>=', hoy.toISOString())
+        where('fecha', '>=', inicioHoy.toISOString())
       );
-      const movimientosSnapshot = await getDocs(movimientosQuery);
+      const movimientosHoySnapshot = await getDocs(movimientosHoyQuery);
+
+      // Obtener movimientos de la semana
+      const movimientosSemanaQuery = query(
+        movimientosRef,
+        where('usuarioId', '==', currentUser.uid),
+        where('fecha', '>=', inicioSemana.toISOString())
+      );
+      const movimientosSemanaSnapshot = await getDocs(movimientosSemanaQuery);
 
       setStats({
         totalProductos,
         productosConStockBajo: stockBajo,
         valorTotalInventario: valorTotal,
-        movimientosHoy: movimientosSnapshot.size,
+        movimientosHoy: movimientosHoySnapshot.size,
+        movimientosSemana: movimientosSemanaSnapshot.size,
+        productosCreados
       });
+
     } catch (error) {
       console.error('Error cargando estadísticas:', error);
+      throw error;
     }
   };
 
   // Cargar productos recientes
   const loadRecentProducts = async () => {
     try {
-      const productosRef = collection(
-        db,
-        'usuarios',
-        currentUser.uid,
-        'almacenes',
-        'principal',
-        'productos'
-      );
-      const productosQuery = query(
-        productosRef,
-        orderBy('fechaCreacion', 'desc'),
-        limit(5)
-      );
+      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
+      const productosQuery = query(productosRef, orderBy('fechaCreacion', 'desc'), limit(5));
       const snapshot = await getDocs(productosQuery);
-
+      
       const productos = [];
       snapshot.forEach((doc) => {
         productos.push({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data()
         });
       });
-
+      
       setRecentProducts(productos);
     } catch (error) {
       console.error('Error cargando productos recientes:', error);
@@ -174,15 +221,15 @@ const Dashboard = () => {
         limit(5)
       );
       const snapshot = await getDocs(movimientosQuery);
-
+      
       const movimientos = [];
       snapshot.forEach((doc) => {
         movimientos.push({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data()
         });
       });
-
+      
       setRecentMovements(movimientos);
     } catch (error) {
       console.error('Error cargando movimientos recientes:', error);
@@ -192,31 +239,31 @@ const Dashboard = () => {
   // Cargar productos con stock bajo
   const loadLowStockProducts = async () => {
     try {
-      const productosRef = collection(
-        db,
-        'usuarios',
-        currentUser.uid,
-        'almacenes',
-        'principal',
-        'productos'
-      );
+      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
       const snapshot = await getDocs(productosRef);
-
+      
       const productosStockBajo = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
         if ((data.cantidadActual || 0) <= (data.cantidadMinima || 5)) {
           productosStockBajo.push({
             id: doc.id,
-            ...data,
+            ...data
           });
         }
       });
-
-      setLowStockProducts(productosStockBajo);
+      
+      setLowStockProducts(productosStockBajo.slice(0, 5)); // Solo 5 para el dashboard
     } catch (error) {
       console.error('Error cargando productos con stock bajo:', error);
     }
+  };
+
+  // Refrescar datos manualmente
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadDashboardData();
+    setRefreshing(false);
   };
 
   // Formatear números a moneda
@@ -229,15 +276,26 @@ const Dashboard = () => {
     }).format(amount);
   };
 
-  // Formatear fecha
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  // Formatear fecha relativa
+  const formatRelativeDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) return 'Hoy';
+      if (diffDays === 2) return 'Ayer';
+      if (diffDays <= 7) return `Hace ${diffDays - 1} días`;
+      
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Fecha inválida';
+    }
   };
 
   if (loading) {
@@ -250,13 +308,23 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Encabezado */}
+      {/* Encabezado con refresh */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Resumen general de tu inventario</p>
+          <p className="text-gray-600 mt-1">
+            Resumen general de tu inventario • Última actualización: {new Date().toLocaleTimeString('es-ES')}
+          </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="text-sm">Actualizar</span>
+          </button>
           <button className="btn-primary flex items-center space-x-2">
             <Plus className="w-4 h-4" />
             <span>Acción Rápida</span>
@@ -264,18 +332,24 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Tarjetas de estadísticas */}
+      {/* Mensaje de error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <p className="text-red-700">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Estadísticas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Productos */}
         <div className="stat-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
-                Total Productos
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                {stats.totalProductos}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Total Productos</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalProductos}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Package className="w-6 h-6 text-blue-600" />
@@ -283,7 +357,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 flex items-center text-sm">
             <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-            <span className="text-green-600">Activos</span>
+            <span className="text-green-600">+{stats.productosCreados} hoy</span>
           </div>
         </div>
 
@@ -292,16 +366,16 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Stock Bajo</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {stats.productosConStockBajo}
-              </p>
+              <p className="text-2xl font-bold text-orange-600">{stats.productosConStockBajo}</p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-orange-600" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="text-orange-600">Requieren atención</span>
+            <span className={`${stats.productosConStockBajo > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+              {stats.productosConStockBajo > 0 ? 'Requieren atención' : 'Niveles óptimos'}
+            </span>
           </div>
         </div>
 
@@ -324,35 +398,31 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Movimientos Hoy */}
+        {/* Actividad */}
         <div className="stat-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
-                Movimientos Hoy
-              </p>
-              <p className="text-2xl font-bold text-purple-600">
-                {stats.movimientosHoy}
-              </p>
+              <p className="text-sm font-medium text-gray-600">Actividad</p>
+              <p className="text-2xl font-bold text-purple-600">{stats.movimientosHoy}</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
+              <BarChart className="w-6 h-6 text-purple-600" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="text-purple-600">Actividad del día</span>
+            <Calendar className="w-4 h-4 text-purple-600 mr-1" />
+            <span className="text-purple-600">{stats.movimientosSemana} esta semana</span>
           </div>
         </div>
       </div>
 
+      {/* Contenido principal en dos columnas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Productos Recientes */}
         <div className="card">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Productos Recientes
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900">Productos Recientes</h3>
               <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 Ver todos
               </button>
@@ -362,23 +432,18 @@ const Dashboard = () => {
             {recentProducts.length > 0 ? (
               <div className="space-y-4">
                 {recentProducts.map((producto) => (
-                  <div
-                    key={producto.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
+                  <div key={producto.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
-                        {producto.nombre}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        SKU: {producto.sku}
-                      </p>
+                      <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <p className="text-sm text-gray-600">SKU: {producto.sku}</p>
+                        <span className="text-gray-400">•</span>
+                        <p className="text-sm text-gray-600">{producto.categoria}</p>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">
-                        {producto.cantidadActual}
-                      </p>
-                      <p className="text-xs text-gray-500">unidades</p>
+                      <p className="font-semibold text-gray-900">{producto.cantidadActual || 0}</p>
+                      <p className="text-xs text-gray-500">{formatRelativeDate(producto.fechaCreacion)}</p>
                     </div>
                   </div>
                 ))}
@@ -387,18 +452,19 @@ const Dashboard = () => {
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500">No hay productos registrados</p>
+                <button className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  Crear tu primer producto
+                </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Productos con Stock Bajo */}
+        {/* Alertas de Stock */}
         <div className="card">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Alertas de Stock
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900">Alertas de Stock</h3>
               <AlertTriangle className="w-5 h-5 text-orange-600" />
             </div>
           </div>
@@ -406,25 +472,14 @@ const Dashboard = () => {
             {lowStockProducts.length > 0 ? (
               <div className="space-y-4">
                 {lowStockProducts.map((producto) => (
-                  <div
-                    key={producto.id}
-                    className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg"
-                  >
+                  <div key={producto.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
-                        {producto.nombre}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        SKU: {producto.sku}
-                      </p>
+                      <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
+                      <p className="text-sm text-gray-600">SKU: {producto.sku}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-orange-600">
-                        {producto.cantidadActual}
-                      </p>
-                      <p className="text-xs text-orange-500">
-                        Min: {producto.cantidadMinima || 5}
-                      </p>
+                      <p className="font-semibold text-orange-600">{producto.cantidadActual || 0}</p>
+                      <p className="text-xs text-orange-500">Min: {producto.cantidadMinima || 5}</p>
                     </div>
                   </div>
                 ))}
@@ -434,22 +489,19 @@ const Dashboard = () => {
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Package className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-green-600 font-medium">
-                  Todo el stock está en niveles óptimos
-                </p>
+                <p className="text-green-600 font-medium">Todo el stock está en niveles óptimos</p>
+                <p className="text-sm text-gray-500 mt-1">No hay productos con stock bajo</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Movimientos Recientes */}
+      {/* Actividad Reciente */}
       <div className="card">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Movimientos Recientes
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">Actividad Reciente</h3>
             <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
               Ver historial completo
             </button>
@@ -480,33 +532,30 @@ const Dashboard = () => {
                     <tr key={movimiento.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
+                          {movimiento.productoNombre}
+                        </div>
+                        <div className="text-sm text-gray-500">
                           {movimiento.productoSKU}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            movimiento.tipoMovimiento === 'entrada'
-                              ? 'bg-green-100 text-green-800'
-                              : movimiento.tipoMovimiento === 'salida'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-blue-100 text-blue-800'
-                          }`}
-                        >
-                          {movimiento.tipoMovimiento === 'entrada' && (
-                            <ArrowUp className="w-3 h-3 mr-1" />
-                          )}
-                          {movimiento.tipoMovimiento === 'salida' && (
-                            <ArrowDown className="w-3 h-3 mr-1" />
-                          )}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          movimiento.tipoMovimiento === 'entrada' 
+                            ? 'bg-green-100 text-green-800' 
+                            : movimiento.tipoMovimiento === 'salida'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {movimiento.tipoMovimiento === 'entrada' && <ArrowUp className="w-3 h-3 mr-1" />}
+                          {movimiento.tipoMovimiento === 'salida' && <ArrowDown className="w-3 h-3 mr-1" />}
                           {movimiento.subTipo}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {movimiento.cantidad}
+                        {movimiento.tipoMovimiento === 'entrada' ? '+' : '-'}{movimiento.cantidad}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(movimiento.fecha)}
+                        {formatRelativeDate(movimiento.fecha)}
                       </td>
                     </tr>
                   ))}
@@ -517,6 +566,7 @@ const Dashboard = () => {
             <div className="text-center py-12">
               <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No hay movimientos registrados</p>
+              <p className="text-sm text-gray-400 mt-1">Los movimientos aparecerán aquí una vez que empieces a usar el sistema</p>
             </div>
           )}
         </div>
