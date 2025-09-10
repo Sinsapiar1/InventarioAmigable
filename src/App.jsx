@@ -354,16 +354,3 @@ function App() {
 }
 
 export default App;
-
-// Importar al inicio del archivo
-import NotificationContainer from './components/NotificationContainer';
-import { useNotifications } from './hooks/useNotifications';
-
-// Dentro del componente AppContent, agregar:
-const { notifications, removeNotification } = useNotifications();
-
-// Antes del closing div final:
-<NotificationContainer 
-  notifications={notifications} 
-  removeNotification={removeNotification} 
-/>
