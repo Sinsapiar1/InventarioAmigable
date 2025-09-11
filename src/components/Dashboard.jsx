@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useWarehouse } from '../contexts/WarehouseContext';
 import { 
   collection, 
   query, 
@@ -30,6 +31,7 @@ import {
 
 const Dashboard = () => {
   const { currentUser } = useAuth();
+  const { activeWarehouse, getActiveWarehouse } = useWarehouse();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
@@ -51,6 +53,13 @@ const Dashboard = () => {
     if (!currentUser) return;
     loadDashboardData();
   }, [currentUser]);
+
+  // Recargar datos cuando cambia el almacén activo
+  useEffect(() => {
+    if (currentUser && activeWarehouse) {
+      loadDashboardData();
+    }
+  }, [activeWarehouse]);
 
   // Auto-refresh del dashboard cada 30 segundos (menos molesto)
   useEffect(() => {
@@ -99,8 +108,8 @@ const Dashboard = () => {
   // Cargar estadísticas generales
   const loadStats = async () => {
     try {
-      // Obtener productos
-      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
+      // Obtener productos del almacén activo
+      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', activeWarehouse, 'productos');
       const productosSnapshot = await getDocs(productosRef);
       
       let totalProductos = 0;
@@ -195,7 +204,7 @@ const Dashboard = () => {
   // Cargar productos recientes
   const loadRecentProducts = async () => {
     try {
-      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
+      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', activeWarehouse, 'productos');
       const productosQuery = query(productosRef, orderBy('fechaCreacion', 'desc'), limit(5));
       const snapshot = await getDocs(productosQuery);
       
@@ -249,7 +258,7 @@ const Dashboard = () => {
   // Cargar productos con stock bajo
   const loadLowStockProducts = async () => {
     try {
-      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
+      const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', activeWarehouse, 'productos');
       const snapshot = await getDocs(productosRef);
       
       const productosStockBajo = [];
@@ -323,7 +332,7 @@ const Dashboard = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">
-            Resumen general de tu inventario • Última actualización: {new Date().toLocaleTimeString('es-ES')}
+            <span className="font-medium text-blue-600">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
           </p>
           <p className="text-xs text-gray-400 mt-2 hidden sm:block">
             Sistema desarrollado por <span className="font-medium text-gray-500">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useWarehouse } from '../contexts/WarehouseContext';
 import {
   collection,
   doc,
@@ -31,6 +32,7 @@ import {
 
 const MovementForm = () => {
   const { currentUser, userProfile } = useAuth();
+  const { activeWarehouse, getActiveWarehouse } = useWarehouse();
   const [products, setProducts] = useState([]);
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +81,13 @@ const MovementForm = () => {
     if (!currentUser) return;
     loadData();
   }, [currentUser]);
+
+  // Recargar cuando cambia el almacén activo
+  useEffect(() => {
+    if (currentUser && activeWarehouse) {
+      loadData();
+    }
+  }, [activeWarehouse]);
 
   const loadData = async () => {
     try {
@@ -151,7 +160,7 @@ const MovementForm = () => {
         'usuarios',
         currentUser.uid,
         'almacenes',
-        'principal',
+        activeWarehouse,
         'productos'
       );
       const snapshot = await getDocs(productosRef);
@@ -635,8 +644,7 @@ const MovementForm = () => {
             Movimientos de Inventario
           </h1>
           <p className="text-gray-600 mt-1">
-            Registra entradas y salidas de productos • {products.length}{' '}
-            productos disponibles
+            <span className="font-medium text-blue-600">{getActiveWarehouse().nombre}</span> • {products.length} productos disponibles
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center space-x-2">
