@@ -142,6 +142,12 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
           const data = requestDocRead.data();
 
           // Read 2: Verificar producto en almacén destino
+          console.log('🔍 Buscando producto en destino:', {
+            usuarioId: currentUser.uid,
+            almacenId: data.almacenDestinoId,
+            productoSKU: data.productoSKU
+          });
+          
           const productoDestinoRef = doc(
             db,
             'usuarios',
@@ -152,6 +158,8 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
             data.productoSKU
           );
           const productoDestinoDoc = await transaction.get(productoDestinoRef);
+          
+          console.log('📦 Producto existe en destino:', productoDestinoDoc.exists());
 
           // Write 1: Actualizar estado de solicitud
           transaction.update(requestRef, {
@@ -167,12 +175,24 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
             const cantidadAnterior = productoExistente.cantidadActual || 0;
             const cantidadNueva = cantidadAnterior + data.cantidad;
 
+            console.log('✅ Sumando a producto existente:', {
+              cantidadAnterior,
+              cantidadASumar: data.cantidad,
+              cantidadNueva
+            });
+
             transaction.update(productoDestinoRef, {
               cantidadActual: cantidadNueva,
               fechaActualizacion: new Date().toISOString()
             });
           } else {
             // CREAR producto nuevo
+            console.log('🆕 Creando producto nuevo:', {
+              sku: data.productoSKU,
+              nombre: data.productoNombre,
+              cantidad: data.cantidad
+            });
+
             const nuevoProducto = {
               sku: data.productoSKU,
               nombre: data.productoNombre,
@@ -181,7 +201,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
               cantidadMinima: 5,
               precioVenta: 0,
               precioCompra: 0,
-              proveedor: `Traspaso de ${data.usuarioOrigenNombre}`,
+              proveedor: `Traspaso de ${data.usuarioOrigenNombre || 'Usuario'}`,
               ubicacionFisica: '',
               descripcion: 'Producto recibido por traspaso externo',
               fechaCreacion: new Date().toISOString(),
