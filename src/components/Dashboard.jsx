@@ -123,35 +123,39 @@ const Dashboard = () => {
         }
       });
 
-      // Obtener todos los movimientos del usuario y filtrar en el cliente
-      const movimientosRef = collection(db, 'movimientos');
-      const movimientosQuery = query(
-        movimientosRef,
-        where('usuarioId', '==', currentUser.uid)
-      );
-      const movimientosSnapshot = await getDocs(movimientosQuery);
-
+      // Obtener movimientos SIN where clause para evitar errores de índices
       let movimientosHoy = 0;
       let movimientosSemana = 0;
 
-      movimientosSnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.fecha) {
-          try {
-            const fechaMovimiento = new Date(data.fecha);
-            if (!isNaN(fechaMovimiento.getTime())) {
-              if (fechaMovimiento >= inicioHoy) {
-                movimientosHoy++;
+      try {
+        const movimientosRef = collection(db, 'movimientos');
+        const movimientosSnapshot = await getDocs(movimientosRef);
+
+        movimientosSnapshot.forEach((doc) => {
+          const data = doc.data();
+          // Filtrar por usuario en el cliente
+          if (data.usuarioId === currentUser.uid && data.fecha) {
+            try {
+              const fechaMovimiento = new Date(data.fecha);
+              if (!isNaN(fechaMovimiento.getTime())) {
+                if (fechaMovimiento >= inicioHoy) {
+                  movimientosHoy++;
+                }
+                if (fechaMovimiento >= inicioSemana) {
+                  movimientosSemana++;
+                }
               }
-              if (fechaMovimiento >= inicioSemana) {
-                movimientosSemana++;
-              }
+            } catch (dateError) {
+              console.warn('Error procesando fecha de movimiento:', data.fecha);
             }
-          } catch (dateError) {
-            console.warn('Error procesando fecha de movimiento:', data.fecha);
           }
-        }
-      });
+        });
+      } catch (movError) {
+        console.warn('Error cargando movimientos para estadísticas:', movError);
+        // Continuar sin movimientos si hay error
+        movimientosHoy = 0;
+        movimientosSemana = 0;
+      }
 
       setStats({
         totalProductos,
@@ -197,27 +201,31 @@ const Dashboard = () => {
     }
   };
 
-  // Cargar movimientos recientes
+  // Cargar movimientos recientes (SIN consultas complejas que requieren índices)
   const loadRecentMovements = async () => {
     try {
+      // Obtener TODOS los movimientos y filtrar en el cliente
       const movimientosRef = collection(db, 'movimientos');
-      const movimientosQuery = query(
-        movimientosRef,
-        where('usuarioId', '==', currentUser.uid),
-        limit(10)
-      );
-      const snapshot = await getDocs(movimientosQuery);
+      const snapshot = await getDocs(movimientosRef);
       
       const movimientos = [];
       snapshot.forEach((doc) => {
-        movimientos.push({
-          id: doc.id,
-          ...doc.data()
-        });
+        const data = doc.data();
+        // Filtrar por usuario en el cliente
+        if (data.usuarioId === currentUser.uid) {
+          movimientos.push({
+            id: doc.id,
+            ...data
+          });
+        }
       });
       
-      // Ordenar en el cliente y tomar solo 5
-      movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      // Ordenar por fecha en el cliente y tomar solo 5
+      movimientos.sort((a, b) => {
+        if (!a.fecha || !b.fecha) return 0;
+        return new Date(b.fecha) - new Date(a.fecha);
+      });
+      
       setRecentMovements(movimientos.slice(0, 5));
     } catch (error) {
       console.error('Error cargando movimientos recientes:', error);

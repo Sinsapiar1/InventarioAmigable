@@ -114,27 +114,32 @@ const MovementForm = () => {
 
   const loadRecentMovements = async () => {
     try {
+      // Cargar TODOS los movimientos y filtrar en el cliente (evita errores de índices)
       const movimientosRef = collection(db, 'movimientos');
-      const movimientosQuery = query(
-        movimientosRef,
-        where('usuarioId', '==', currentUser.uid),
-        orderBy('fecha', 'desc'),
-        limit(20)
-      );
-      const snapshot = await getDocs(movimientosQuery);
+      const snapshot = await getDocs(movimientosRef);
 
       const movimientosData = [];
       snapshot.forEach((doc) => {
-        movimientosData.push({
-          id: doc.id,
-          ...doc.data(),
-        });
+        const data = doc.data();
+        // Filtrar por usuario en el cliente
+        if (data.usuarioId === currentUser.uid) {
+          movimientosData.push({
+            id: doc.id,
+            ...data,
+          });
+        }
       });
 
-      setMovements(movimientosData);
+      // Ordenar por fecha en el cliente
+      movimientosData.sort((a, b) => {
+        if (!a.fecha || !b.fecha) return 0;
+        return new Date(b.fecha) - new Date(a.fecha);
+      });
+
+      setMovements(movimientosData.slice(0, 20)); // Limitar a 20 más recientes
     } catch (error) {
       console.error('Error cargando movimientos:', error);
-      // No lanzar error aquí, solo log
+      setMovements([]); // Array vacío si falla
     }
   };
 
