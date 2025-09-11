@@ -30,6 +30,7 @@ import {
   Hash,
   Tag,
   MapPin,
+  RefreshCw,
 } from 'lucide-react';
 
 const ProductForm = () => {
@@ -77,6 +78,17 @@ const ProductForm = () => {
   // Cargar productos al montar el componente
   useEffect(() => {
     loadProducts();
+  }, [currentUser]);
+
+  // Recargar productos cada 5 segundos para ver cambios de traspasos
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const interval = setInterval(() => {
+      loadProducts();
+    }, 5000); // Cada 5 segundos
+
+    return () => clearInterval(interval);
   }, [currentUser]);
 
   // Cargar productos desde Firestore
@@ -548,7 +560,15 @@ const ProductForm = () => {
             Administra tu catálogo de productos
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex gap-3">
+          <button
+            onClick={loadProducts}
+            className="btn-secondary flex items-center space-x-2"
+            title="Actualizar lista"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">Actualizar</span>
+          </button>
           <button
             onClick={() => setShowForm(true)}
             className="btn-primary flex items-center justify-center space-x-2 w-full sm:w-auto min-h-[48px]"
