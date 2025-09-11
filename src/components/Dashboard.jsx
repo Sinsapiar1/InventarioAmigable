@@ -55,12 +55,23 @@ const Dashboard = () => {
       setLoading(true);
       setError('');
       
-      await Promise.all([
+      // Cargar cada función individualmente para que si una falla, las otras continúen
+      const results = await Promise.allSettled([
         loadStats(),
         loadRecentProducts(),
         loadRecentMovements(),
         loadLowStockProducts()
       ]);
+      
+      // Verificar si alguna función falló
+      const failedOperations = results.filter(result => result.status === 'rejected');
+      if (failedOperations.length > 0) {
+        console.warn('Algunas operaciones fallaron:', failedOperations);
+        // Mostrar advertencia pero no error completo
+        if (failedOperations.length === results.length) {
+          setError('Error al cargar algunos datos del dashboard');
+        }
+      }
       
     } catch (error) {
       console.error('Error cargando dashboard:', error);
@@ -122,13 +133,20 @@ const Dashboard = () => {
 
       movimientosSnapshot.forEach((doc) => {
         const data = doc.data();
-        const fechaMovimiento = new Date(data.fecha);
-        
-        if (fechaMovimiento >= inicioHoy) {
-          movimientosHoy++;
-        }
-        if (fechaMovimiento >= inicioSemana) {
-          movimientosSemana++;
+        if (data.fecha) {
+          try {
+            const fechaMovimiento = new Date(data.fecha);
+            if (!isNaN(fechaMovimiento.getTime())) {
+              if (fechaMovimiento >= inicioHoy) {
+                movimientosHoy++;
+              }
+              if (fechaMovimiento >= inicioSemana) {
+                movimientosSemana++;
+              }
+            }
+          } catch (dateError) {
+            console.warn('Error procesando fecha de movimiento:', data.fecha);
+          }
         }
       });
 
@@ -143,7 +161,15 @@ const Dashboard = () => {
 
     } catch (error) {
       console.error('Error cargando estadísticas:', error);
-      throw error;
+      // No hacer throw, establecer valores por defecto
+      setStats({
+        totalProductos: 0,
+        productosConStockBajo: 0,
+        valorTotalInventario: 0,
+        movimientosHoy: 0,
+        movimientosSemana: 0,
+        productosCreados: 0
+      });
     }
   };
 
