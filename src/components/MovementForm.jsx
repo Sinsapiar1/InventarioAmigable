@@ -973,6 +973,10 @@ const MovementForm = () => {
                   placeholder="0"
                   disabled={submitting}
                   required
+                  onWheel={(e) => {
+                    // PREVENIR scroll del mouse que cambia valores
+                    e.target.blur();
+                  }}
                 />
                 <Calculator className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
               </div>

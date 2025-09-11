@@ -557,14 +557,20 @@ firestore/
 - **Solución**: parseInt() para cantidades, parseFloat() solo para precios
 - **Prevención**: onKeyDown bloquea decimales en campos de cantidad
 
+### **Scroll del Mouse Cambia Valores:**
+- **Causa**: Comportamiento por defecto de input type="number"
+- **Problema**: 30 → 29.99 al hacer scroll sobre el campo
+- **Solución**: onWheel={(e) => e.target.blur()} 
+- **Resultado**: Scroll no afecta los valores numéricos
+
 ### **Doble Clic en Botones:**
 - **Causa**: Usuarios impacientes
 - **Solución**: disabled={loading} + estados de carga
 - **Prevención**: Botones se deshabilitan durante procesamiento
 
 ### **Stock No Actualizado:**
-- **Causa**: Sin refresh automático
-- **Solución**: Auto-refresh cada 5s + botón manual
+- **Causa**: Sin refresh automático o estructura de datos inconsistente
+- **Solución**: Auto-refresh cada 15s + recrear usuarios con datos corruptos
 - **Resultado**: Cambios visibles en tiempo real
 
 ---
@@ -589,12 +595,13 @@ git log --oneline -5         # Ver últimos commits
 
 ## 🎯 **PRÓXIMAS MEJORAS SUGERIDAS**
 
-### **Funcionalidades:**
-- ✅ **Reportes**: Exportar datos a Excel/CSV
-- ✅ **Códigos de barras**: Generación automática
-- ✅ **Proveedores**: Gestión de proveedores
-- ✅ **Categorías**: CRUD de categorías personalizadas
-- ✅ **Usuarios**: Roles y permisos
+### **Funcionalidades Prioritarias:**
+- 🔐 **Sistema de Verificación de Emails**: Lista de emails autorizados + códigos de verificación
+- 📊 **Reportes**: Exportar datos a Excel/CSV
+- 📱 **Códigos de barras**: Generación y escaneo automático
+- 🏢 **Proveedores**: Gestión completa de proveedores
+- 📋 **Categorías**: CRUD de categorías personalizadas
+- 👥 **Roles y permisos**: Admin, Usuario, Solo lectura
 
 ### **Técnicas:**
 - ✅ **PWA**: Aplicación web progresiva

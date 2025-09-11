@@ -737,6 +737,10 @@ const ProductForm = () => {
                         e.preventDefault();
                       }
                     }}
+                    onWheel={(e) => {
+                      // PREVENIR scroll del mouse que cambia valores
+                      e.target.blur();
+                    }}
                   />
               </div>
 
@@ -760,6 +764,10 @@ const ProductForm = () => {
                     if (e.key === '.' || e.key === ',') {
                       e.preventDefault();
                     }
+                  }}
+                  onWheel={(e) => {
+                    // PREVENIR scroll del mouse que cambia valores
+                    e.target.blur();
                   }}
                 />
               </div>
