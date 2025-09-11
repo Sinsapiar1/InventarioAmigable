@@ -28,6 +28,9 @@ function AppContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
 
   // Detectar si es móvil
   useEffect(() => {
@@ -54,11 +57,27 @@ function AppContent() {
       if (isMobileMenuOpen && !event.target.closest('.mobile-menu') && !event.target.closest('.mobile-menu-button')) {
         setIsMobileMenuOpen(false);
       }
+      if (showNotifications && !event.target.closest('.notifications-panel')) {
+        setShowNotifications(false);
+      }
+      if (showSettings && !event.target.closest('.settings-panel')) {
+        setShowSettings(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showUserMenu, isMobileMenuOpen]);
+  }, [showUserMenu, isMobileMenuOpen, showNotifications, showSettings]);
+
+  // Listener para cambios de vista desde componentes
+  useEffect(() => {
+    const handleChangeView = (event) => {
+      setCurrentView(event.detail);
+    };
+
+    window.addEventListener('changeView', handleChangeView);
+    return () => window.removeEventListener('changeView', handleChangeView);
+  }, []);
 
   // Si no hay usuario autenticado, mostrar login
   if (!currentUser) {
@@ -147,19 +166,146 @@ function AppContent() {
             {/* Acciones del header */}
             <div className="flex items-center space-x-2">
               {/* Notificaciones */}
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors relative">
-                <Bell className="w-5 h-5" />
-                {notifications.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {notifications.length}
-                  </span>
+              <div className="relative notifications-panel">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors relative"
+                  title="Notificaciones"
+                >
+                  <Bell className="w-5 h-5" />
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Panel de Notificaciones */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-40 max-h-96 overflow-y-auto">
+                    <div className="p-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">Notificaciones</h3>
+                        {notifications.length > 0 && (
+                          <button 
+                            onClick={() => setNotifications([])}
+                            className="text-sm text-blue-600 hover:text-blue-700"
+                          >
+                            Limpiar todas
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.length > 0 ? (
+                        notifications.map((notif, index) => (
+                          <div key={index} className="p-4 border-b border-gray-100 hover:bg-gray-50">
+                            <div className="flex items-start space-x-3">
+                              <div className="flex-shrink-0">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">{notif.title || 'Notificación'}</p>
+                                <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {new Date().toLocaleDateString('es-ES')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center">
+                          <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                          <p className="text-gray-500">No hay notificaciones</p>
+                          <p className="text-sm text-gray-400 mt-1">Las notificaciones aparecerán aquí</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
 
               {/* Configuración */}
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-                <Settings className="w-5 h-5" />
-              </button>
+              <div className="relative settings-panel">
+                <button 
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Configuración"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+
+                {/* Panel de Configuración */}
+                {showSettings && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
+                    <div className="p-4 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900">Configuración</h3>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      {/* Configuración de Stock Crítico */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Stock Crítico</h4>
+                        <div className="space-y-2">
+                          <label className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Nivel mínimo global</span>
+                            <input 
+                              type="number" 
+                              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                              defaultValue="5"
+                              min="1"
+                              max="100"
+                            />
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="mr-2" defaultChecked />
+                            <span className="text-sm text-gray-600">Alertas automáticas</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Configuración de Almacenes */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Almacenes</h4>
+                        <div className="space-y-2">
+                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
+                            + Crear nuevo almacén
+                          </button>
+                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
+                            Gestionar almacenes
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Sistema de Amigos */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Colaboración</h4>
+                        <div className="space-y-2">
+                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
+                            + Agregar colaborador
+                          </button>
+                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
+                            Ver solicitudes pendientes
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Configuración de Usuario */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Cuenta</h4>
+                        <div className="space-y-2">
+                          <button className="w-full text-left text-sm text-gray-600 hover:text-gray-800">
+                            Perfil de usuario
+                          </button>
+                          <button className="w-full text-left text-sm text-gray-600 hover:text-gray-800">
+                            Preferencias
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Usuario */}
               <div className="relative">

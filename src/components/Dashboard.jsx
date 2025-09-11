@@ -18,12 +18,14 @@ import {
   DollarSign,
   ArrowUp,
   ArrowDown,
+  ArrowUpDown,
   Eye,
   Plus,
   Search,
   RefreshCw,
   Calendar,
-  BarChart
+  BarChart,
+  Clipboard
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -42,6 +44,7 @@ const Dashboard = () => {
   const [recentMovements, setRecentMovements] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [error, setError] = useState('');
+  const [showQuickActions, setShowQuickActions] = useState(false);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -312,10 +315,84 @@ const Dashboard = () => {
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             <span className="text-sm">Actualizar</span>
           </button>
-          <button className="btn-primary flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Acción Rápida</span>
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowQuickActions(!showQuickActions)}
+              className="btn-primary flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Acción Rápida</span>
+            </button>
+
+            {/* Modal de Acciones Rápidas */}
+            {showQuickActions && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Acciones Rápidas</h3>
+                </div>
+                <div className="p-4 space-y-3">
+                  <button 
+                    onClick={() => {
+                      setShowQuickActions(false);
+                      // Cambiar a la vista de productos
+                      window.dispatchEvent(new CustomEvent('changeView', { detail: 'products' }));
+                    }}
+                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <Package className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Nuevo Producto</p>
+                      <p className="text-xs text-gray-500">Agregar producto al inventario</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      setShowQuickActions(false);
+                      window.dispatchEvent(new CustomEvent('changeView', { detail: 'movements' }));
+                    }}
+                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <ArrowUpDown className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Registrar Movimiento</p>
+                      <p className="text-xs text-gray-500">Entrada o salida de productos</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      setShowQuickActions(false);
+                      window.dispatchEvent(new CustomEvent('changeView', { detail: 'inventory' }));
+                    }}
+                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <Clipboard className="w-5 h-5 text-purple-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Toma de Inventario</p>
+                      <p className="text-xs text-gray-500">Conteo físico de productos</p>
+                    </div>
+                  </button>
+
+                  <div className="border-t border-gray-200 pt-3 mt-3">
+                    <button 
+                      onClick={() => {
+                        setShowQuickActions(false);
+                        handleRefresh();
+                      }}
+                      className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <RefreshCw className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Actualizar Datos</p>
+                        <p className="text-xs text-gray-500">Refrescar información</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

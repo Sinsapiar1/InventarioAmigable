@@ -41,6 +41,9 @@ const ProductForm = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [duplicateAction, setDuplicateAction] = useState('sum'); // 'sum' o 'error'
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
 
   const [formData, setFormData] = useState({
     sku: '',
@@ -209,15 +212,30 @@ const ProductForm = () => {
       return false;
     }
 
-    // Validar SKU único (solo si no estamos editando o si el SKU cambió)
+    // Validar SKU - manejar duplicados según configuración
     if (!editingProduct || editingProduct.sku !== formData.sku.toUpperCase().trim()) {
-      const skuExists = products.some(
+      const existingProduct = products.find(
         (product) => product.sku.toLowerCase() === formData.sku.toLowerCase().trim()
       );
 
-      if (skuExists) {
+      if (existingProduct && duplicateAction === 'error') {
         setError('Ya existe un producto con este SKU');
         return false;
+      } else if (existingProduct && duplicateAction === 'sum') {
+        // Preparar información para mostrar el diálogo de suma
+        const cantidadActual = parseFloat(formData.cantidadActual) || 0;
+        const cantidadExistente = existingProduct.cantidadActual || 0;
+        const cantidadFinal = cantidadExistente + cantidadActual;
+
+        setDuplicateInfo({
+          existingProduct,
+          cantidadNueva: cantidadActual,
+          cantidadExistente,
+          cantidadFinal,
+        });
+        
+        setShowDuplicateDialog(true);
+        return false; // Pausar validación hasta que el usuario confirme
       }
     }
 
