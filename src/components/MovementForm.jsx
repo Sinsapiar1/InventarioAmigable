@@ -476,25 +476,25 @@ const MovementForm = () => {
             // Write 3: Crear solicitud de traspaso
             const solicitudData = {
               usuarioOrigenId: currentUser.uid,
-              usuarioOrigenNombre: userProfile?.nombreCompleto || currentUser.displayName,
-              usuarioOrigenEmail: currentUser.email,
+              usuarioOrigenNombre: userProfile?.nombreCompleto || currentUser.displayName || 'Usuario',
+              usuarioOrigenEmail: currentUser.email || '',
               almacenOrigenId: 'principal',
               almacenOrigenNombre: 'Almacén Principal',
               
               usuarioDestinoId: usuarioDestinoId,
-              usuarioDestinoNombre: usuarioDestino.nombreCompleto,
-              usuarioDestinoEmail: usuarioDestino.email,
+              usuarioDestinoNombre: usuarioDestino.nombreCompleto || usuarioDestino.displayName || 'Usuario',
+              usuarioDestinoEmail: usuarioDestino.email || '',
               almacenDestinoId: almacenDestinoId,
-              almacenDestinoNombre: almacenDestino.nombre,
+              almacenDestinoNombre: almacenDestino.nombre || 'Almacén',
               
               productoSKU: formData.productoSKU,
-              productoNombre: producto.nombre,
-              productoCategoria: producto.categoria,
+              productoNombre: producto.nombre || '',
+              productoCategoria: producto.categoria || 'General',
               cantidad: cantidadRedondeada,
               
-              razon: formData.razon.trim(),
-              observaciones: formData.observaciones.trim() || null,
-              numeroDocumento: formData.numeroDocumento.trim() || null,
+              razon: formData.razon.trim() || 'Traspaso',
+              observaciones: formData.observaciones.trim() || '',
+              numeroDocumento: formData.numeroDocumento.trim() || '',
               
               estado: 'pendiente',
               fechaCreacion: new Date().toISOString(),
@@ -505,18 +505,19 @@ const MovementForm = () => {
             transaction.set(solicitudRef, solicitudData);
 
             // Write 4: Crear notificación
+            const remitenteNombre = userProfile?.nombreCompleto || currentUser.displayName || 'Usuario';
             const notificacionData = {
               usuarioId: usuarioDestinoId,
               tipo: 'solicitud_traspaso',
               titulo: 'Nueva Solicitud de Traspaso',
-              mensaje: `${userProfile?.nombreCompleto || currentUser.displayName} quiere transferirte ${cantidadRedondeada} ${producto.nombre}`,
+              mensaje: `${remitenteNombre} quiere transferirte ${cantidadRedondeada} ${producto.nombre}`,
               leida: false,
               fecha: new Date().toISOString(),
               datos: {
                 solicitudId: solicitudRef.id,
-                productoNombre: producto.nombre,
+                productoNombre: producto.nombre || '',
                 cantidad: cantidadRedondeada,
-                remitente: userProfile?.nombreCompleto || currentUser.displayName
+                remitente: remitenteNombre
               }
             };
 
