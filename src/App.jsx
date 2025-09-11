@@ -7,6 +7,9 @@ import MovementForm from './components/MovementForm';
 import InventoryTaking from './components/InventoryTaking';
 import LoadingSpinner from './components/LoadingSpinner';
 import NotificationContainer from './components/NotificationContainer';
+import SettingsPanel from './components/SettingsPanel';
+import WarehouseManager from './components/WarehouseManager';
+import FriendsManager from './components/FriendsManager';
 import {
   Package,
   BarChart3,
@@ -31,6 +34,8 @@ function AppContent() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showWarehouseManager, setShowWarehouseManager] = useState(false);
+  const [showFriendsManager, setShowFriendsManager] = useState(false);
 
   // Detectar si es móvil
   useEffect(() => {
@@ -236,75 +241,6 @@ function AppContent() {
                   <Settings className="w-5 h-5" />
                 </button>
 
-                {/* Panel de Configuración */}
-                {showSettings && (
-                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
-                    <div className="p-4 border-b border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900">Configuración</h3>
-                    </div>
-                    <div className="p-4 space-y-4">
-                      {/* Configuración de Stock Crítico */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Stock Crítico</h4>
-                        <div className="space-y-2">
-                          <label className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Nivel mínimo global</span>
-                            <input 
-                              type="number" 
-                              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
-                              defaultValue="5"
-                              min="1"
-                              max="100"
-                            />
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="mr-2" defaultChecked />
-                            <span className="text-sm text-gray-600">Alertas automáticas</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Configuración de Almacenes */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Almacenes</h4>
-                        <div className="space-y-2">
-                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
-                            + Crear nuevo almacén
-                          </button>
-                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
-                            Gestionar almacenes
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Sistema de Amigos */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Colaboración</h4>
-                        <div className="space-y-2">
-                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
-                            + Agregar colaborador
-                          </button>
-                          <button className="w-full text-left text-sm text-blue-600 hover:text-blue-700">
-                            Ver solicitudes pendientes
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Configuración de Usuario */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Cuenta</h4>
-                        <div className="space-y-2">
-                          <button className="w-full text-left text-sm text-gray-600 hover:text-gray-800">
-                            Perfil de usuario
-                          </button>
-                          <button className="w-full text-left text-sm text-gray-600 hover:text-gray-800">
-                            Preferencias
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Usuario */}
@@ -491,6 +427,26 @@ function AppContent() {
 
       {/* Contenedor de notificaciones */}
       <NotificationContainer />
+
+      {/* Panel de Configuración */}
+      <SettingsPanel 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)}
+        onOpenWarehouseManager={() => setShowWarehouseManager(true)}
+        onOpenFriendsManager={() => setShowFriendsManager(true)}
+      />
+
+      {/* Gestor de Almacenes */}
+      <WarehouseManager
+        isOpen={showWarehouseManager}
+        onClose={() => setShowWarehouseManager(false)}
+      />
+
+      {/* Gestor de Amigos */}
+      <FriendsManager
+        isOpen={showFriendsManager}
+        onClose={() => setShowFriendsManager(false)}
+      />
     </div>
   );
 }
