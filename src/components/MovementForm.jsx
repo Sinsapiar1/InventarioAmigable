@@ -40,6 +40,7 @@ const MovementForm = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [warehouses, setWarehouses] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [friendWarehouses, setFriendWarehouses] = useState([]);
   const [showTransferOptions, setShowTransferOptions] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -201,6 +202,30 @@ const MovementForm = () => {
     }
   };
 
+  const loadFriendWarehouses = async (friendUserId) => {
+    try {
+      const warehousesRef = collection(db, 'usuarios', friendUserId, 'almacenes');
+      const snapshot = await getDocs(warehousesRef);
+      
+      const warehousesData = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.activo !== false) { // Solo almacenes activos
+          warehousesData.push({
+            id: doc.id,
+            ...data,
+            usuarioId: friendUserId
+          });
+        }
+      });
+      
+      setFriendWarehouses(warehousesData);
+    } catch (error) {
+      console.error('Error cargando almacenes del colaborador:', error);
+      setFriendWarehouses([]);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -222,6 +247,13 @@ const MovementForm = () => {
         newData.almacenDestino = '';
         newData.tipoTraspaso = '';
         newData.usuarioDestino = '';
+        setFriendWarehouses([]);
+      }
+
+      // Cargar almacenes del colaborador cuando se selecciona
+      if (name === 'usuarioDestino' && value) {
+        loadFriendWarehouses(value);
+        newData.almacenDestino = ''; // Reset almacén destino
       }
 
       return newData;
@@ -782,6 +814,34 @@ const MovementForm = () => {
                     </div>
 
                     {formData.usuarioDestino && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Almacén de Destino *
+                        </label>
+                        <select
+                          name="almacenDestino"
+                          value={formData.almacenDestino}
+                          onChange={handleInputChange}
+                          className="input-field"
+                          disabled={submitting}
+                          required
+                        >
+                          <option value="">Seleccionar almacén del colaborador</option>
+                          {friendWarehouses.map((warehouse) => (
+                            <option key={warehouse.id} value={`${warehouse.usuarioId}:${warehouse.id}`}>
+                              {warehouse.nombre} - {warehouse.ubicacion}
+                            </option>
+                          ))}
+                        </select>
+                        {friendWarehouses.length === 0 && (
+                          <p className="text-xs text-orange-600 mt-1">
+                            Cargando almacenes del colaborador...
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {formData.almacenDestino && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <p className="text-sm font-medium text-green-900 mb-1">
                           ✅ Traspaso Externo Confirmado
