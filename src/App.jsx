@@ -266,10 +266,10 @@ function AppContent() {
               </div>
 
               {/* Usuario */}
-              <div className="relative">
+              <div className="relative user-menu">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="user-menu flex items-center space-x-2 text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <User className="w-5 h-5" />
                   {!isMobile && (

@@ -61,9 +61,8 @@ const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsM
       
       await updateDoc(userRef, {
         'configuracion.nivelMinimoDefault': settings.stockMinimoGlobal,
-        'configuracion.alertasStockBajo': settings.alertasAutomaticas,
+        'configuracion.alertasAutomaticas': settings.alertasAutomaticas,
         'configuracion.alertasEmail': settings.alertasEmail,
-        'configuracion.alertasStockBajo': settings.alertasStockBajo,
         'configuracion.alertasStockCero': settings.alertasStockCero,
         fechaActualizacion: new Date().toISOString(),
       });
