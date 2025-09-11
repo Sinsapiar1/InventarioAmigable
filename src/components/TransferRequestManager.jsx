@@ -766,15 +766,102 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                           
                           <div className="flex flex-col gap-2 ml-4">
                             <button
-                              onClick={() => respondToRequest(request.id, 'approve')}
-                              disabled={processingRequest === request.id}
-                              className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
+                              onClick={async () => {
+                                console.log('🔥 BOTÓN APROBAR CLICKEADO - FUNCIÓN DIRECTA');
+                                
+                                try {
+                                  // Actualizar solicitud a aprobada
+                                  const requestRef = doc(db, 'solicitudes-traspaso', request.id);
+                                  await updateDoc(requestRef, {
+                                    estado: 'aprobada',
+                                    fechaAprobacion: new Date().toISOString()
+                                  });
+                                  
+                                  console.log('✅ Solicitud aprobada');
+                                  
+                                  // Crear producto en destino
+                                  const productoRef = doc(
+                                    db,
+                                    'usuarios',
+                                    currentUser.uid,
+                                    'almacenes',
+                                    request.almacenDestinoId,
+                                    'productos',
+                                    request.productoSKU
+                                  );
+                                  
+                                  console.log('📦 Creando/actualizando producto:', request.productoSKU);
+                                  
+                                  const productoDoc = await getDoc(productoRef);
+                                  
+                                  if (productoDoc.exists()) {
+                                    // Sumar al existente
+                                    const actual = productoDoc.data().cantidadActual || 0;
+                                    const nueva = actual + request.cantidad;
+                                    
+                                    await updateDoc(productoRef, {
+                                      cantidadActual: nueva,
+                                      fechaActualizacion: new Date().toISOString()
+                                    });
+                                    
+                                    console.log('✅ Stock sumado:', actual, '+', request.cantidad, '=', nueva);
+                                  } else {
+                                    // Crear nuevo
+                                    await setDoc(productoRef, {
+                                      sku: request.productoSKU,
+                                      nombre: request.productoNombre,
+                                      categoria: 'Traspasos',
+                                      cantidadActual: request.cantidad,
+                                      cantidadMinima: 5,
+                                      precioVenta: 0,
+                                      precioCompra: 0,
+                                      proveedor: 'Traspaso',
+                                      ubicacionFisica: '',
+                                      descripcion: 'Producto recibido por traspaso',
+                                      fechaCreacion: new Date().toISOString(),
+                                      fechaActualizacion: new Date().toISOString(),
+                                    });
+                                    
+                                    console.log('🆕 Producto nuevo creado con cantidad:', request.cantidad);
+                                  }
+                                  
+                                  // Registrar movimiento
+                                  await addDoc(collection(db, 'movimientos'), {
+                                    usuarioId: currentUser.uid,
+                                    almacenId: request.almacenDestinoId,
+                                    productoSKU: request.productoSKU,
+                                    productoNombre: request.productoNombre,
+                                    tipoMovimiento: 'entrada',
+                                    subTipo: 'Traspaso externo aprobado',
+                                    cantidad: request.cantidad,
+                                    cantidadAnterior: productoDoc.exists() ? (productoDoc.data().cantidadActual || 0) : 0,
+                                    cantidadNueva: productoDoc.exists() ? 
+                                      (productoDoc.data().cantidadActual || 0) + request.cantidad : 
+                                      request.cantidad,
+                                    razon: 'Traspaso aprobado',
+                                    fecha: new Date().toISOString(),
+                                    creadoPor: currentUser.email
+                                  });
+                                  
+                                  console.log('📝 Movimiento registrado');
+                                  
+                                  if (window.showSuccess) {
+                                    window.showSuccess('✅ Traspaso aprobado y stock actualizado');
+                                  }
+                                  
+                                  // Recargar datos
+                                  await loadTransferRequests();
+                                  
+                                } catch (error) {
+                                  console.error('❌ Error en aprobación:', error);
+                                  if (window.showError) {
+                                    window.showError('Error al aprobar: ' + error.message);
+                                  }
+                                }
+                              }}
+                              className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-1"
                             >
-                              {processingRequest === request.id ? (
-                                <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
-                              ) : (
-                                <Check className="w-3 h-3" />
-                              )}
+                              <Check className="w-3 h-3" />
                               <span>Aprobar</span>
                             </button>
                             <button
