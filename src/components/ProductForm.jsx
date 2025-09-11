@@ -7,12 +7,14 @@ import {
   getDocs,
   deleteDoc,
   updateDoc,
+  addDoc,
   query,
   orderBy,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
 import ConfirmDialog from './ConfirmDialog';
+import DuplicateSkuDialog from './DuplicateSkuDialog';
 import { useConfirm } from '../hooks/useConfirm';
 import {
   Package,
@@ -240,6 +242,74 @@ const ProductForm = () => {
     }
 
     return true;
+  };
+
+  // Manejar suma de SKU duplicado
+  const handleDuplicateSum = async () => {
+    if (!duplicateInfo) return;
+
+    setSubmitting(true);
+    setShowDuplicateDialog(false);
+
+    try {
+      const { existingProduct, cantidadNueva, cantidadFinal } = duplicateInfo;
+
+      // Actualizar el producto existente con la suma
+      const productRef = doc(
+        db,
+        'usuarios',
+        currentUser.uid,
+        'almacenes',
+        'principal',
+        'productos',
+        existingProduct.sku
+      );
+
+      await updateDoc(productRef, {
+        cantidadActual: cantidadFinal,
+        fechaActualizacion: new Date().toISOString(),
+      });
+
+      // Registrar movimiento de entrada por la suma
+      const movimientoData = {
+        usuarioId: currentUser.uid,
+        almacenId: 'principal',
+        productoSKU: existingProduct.sku,
+        productoNombre: existingProduct.nombre,
+        tipoMovimiento: 'entrada',
+        subTipo: 'Suma por SKU duplicado',
+        cantidad: cantidadNueva,
+        cantidadAnterior: duplicateInfo.cantidadExistente,
+        cantidadNueva: cantidadFinal,
+        razon: `Suma automática por ingreso de SKU duplicado`,
+        observaciones: `Stock anterior: ${duplicateInfo.cantidadExistente}, Cantidad agregada: ${cantidadNueva}, Stock final: ${cantidadFinal}`,
+        fecha: new Date().toISOString(),
+        creadoPor: currentUser.email,
+      };
+
+      await addDoc(collection(db, 'movimientos'), movimientoData);
+
+      setSuccess(`Stock actualizado: ${existingProduct.nombre} ahora tiene ${cantidadFinal} unidades (se agregaron ${cantidadNueva})`);
+      
+      if (window.showSuccess) {
+        window.showSuccess(`Stock sumado correctamente: ${cantidadNueva} + ${duplicateInfo.cantidadExistente} = ${cantidadFinal} unidades`);
+      }
+
+      // Resetear formulario y estado
+      resetForm();
+      setDuplicateInfo(null);
+      await loadProducts();
+
+    } catch (error) {
+      console.error('Error sumando stock:', error);
+      setError('Error al sumar el stock: ' + error.message);
+      
+      if (window.showError) {
+        window.showError('Error al sumar el stock');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Enviar formulario
@@ -522,6 +592,41 @@ const ProductForm = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-4 md:p-6">
+            {/* Configuración de SKU Duplicados */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Configuración de SKU Duplicados</h4>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="duplicateAction"
+                    value="sum"
+                    checked={duplicateAction === 'sum'}
+                    onChange={(e) => setDuplicateAction(e.target.value)}
+                    className="mr-2 text-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">Sumar al stock existente</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="duplicateAction"
+                    value="error"
+                    checked={duplicateAction === 'error'}
+                    onChange={(e) => setDuplicateAction(e.target.value)}
+                    className="mr-2 text-red-600"
+                  />
+                  <span className="text-sm text-gray-700">Mostrar error</span>
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {duplicateAction === 'sum' 
+                  ? 'Si el SKU ya existe, se sumará la cantidad al stock actual'
+                  : 'Si el SKU ya existe, se mostrará un error'
+                }
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* SKU */}
               <div>
@@ -958,6 +1063,18 @@ const ProductForm = () => {
         type={confirmState.type}
         details={confirmState.details}
         loading={confirmState.loading}
+      />
+
+      {/* Diálogo de SKU Duplicado */}
+      <DuplicateSkuDialog
+        isOpen={showDuplicateDialog}
+        onClose={() => {
+          setShowDuplicateDialog(false);
+          setDuplicateInfo(null);
+        }}
+        onConfirm={handleDuplicateSum}
+        duplicateInfo={duplicateInfo}
+        loading={submitting}
       />
     </div>
   );
