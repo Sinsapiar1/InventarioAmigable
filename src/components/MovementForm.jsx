@@ -416,7 +416,22 @@ const MovementForm = () => {
           throw new Error('Producto no encontrado en la base de datos');
         }
 
-        // Read 2 y 3: Para traspasos externos, leer datos del destino
+        // Read 2: Para traspasos internos, leer producto destino
+        let productoDestinoDoc = null;
+        if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'interno') {
+          const productoDestinoRef = doc(
+            db,
+            'usuarios',
+            currentUser.uid,
+            'almacenes',
+            formData.almacenDestino,
+            'productos',
+            formData.productoSKU
+          );
+          productoDestinoDoc = await transaction.get(productoDestinoRef);
+        }
+
+        // Read 3 y 4: Para traspasos externos, leer datos del destino
         let almacenDestinoDoc = null;
         let usuarioDestinoDoc = null;
         
@@ -477,7 +492,64 @@ const MovementForm = () => {
         // Obtener ID del movimiento para referencias
         const movimientoId = movimientoRef.id;
 
-        // Write 3 y 4: Para traspasos externos, crear solicitud y notificación
+        // Write 3: Para traspasos internos, crear entrada directamente
+        if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'interno') {
+          // Crear producto en almacén destino o sumar si existe
+          const productoDestinoRef = doc(
+            db,
+            'usuarios',
+            currentUser.uid,
+            'almacenes',
+            formData.almacenDestino,
+            'productos',
+            formData.productoSKU
+          );
+          
+          if (productoDestinoDoc.exists()) {
+            // Producto existe, sumar cantidad
+            const productoDestino = productoDestinoDoc.data();
+            const nuevaCantidadDestino = productoDestino.cantidadActual + cantidadFinal;
+            
+            transaction.update(productoDestinoRef, {
+              cantidadActual: nuevaCantidadDestino,
+              fechaActualizacion: new Date().toISOString(),
+            });
+          } else {
+            // Producto no existe, crear nuevo
+            const nuevoProductoDestino = {
+              ...producto,
+              cantidadActual: cantidadFinal,
+              fechaCreacion: new Date().toISOString(),
+              fechaActualizacion: new Date().toISOString(),
+            };
+            
+            transaction.set(productoDestinoRef, nuevoProductoDestino);
+          }
+          
+          // Crear movimiento de entrada en almacén destino
+          const almacenDestino = warehouses.find(w => w.id === formData.almacenDestino);
+          const movimientoEntradaData = {
+            usuarioId: currentUser.uid,
+            almacenId: formData.almacenDestino,
+            productoSKU: formData.productoSKU,
+            productoNombre: producto.nombre,
+            tipoMovimiento: 'entrada',
+            subTipo: 'Traspaso desde otro almacén',
+            cantidad: cantidadFinal,
+            stockAnterior: productoDestinoDoc.exists() ? productoDestinoDoc.data().cantidadActual : 0,
+            stockNuevo: productoDestinoDoc.exists() ? (productoDestinoDoc.data().cantidadActual + cantidadFinal) : cantidadFinal,
+            numeroDocumento: formData.numeroDocumento.trim(),
+            razon: `Traspaso interno desde ${getActiveWarehouse().nombre}`,
+            observaciones: formData.observaciones.trim(),
+            fecha: new Date().toISOString(),
+            creadoPor: currentUser.email,
+          };
+          
+          const movimientoEntradaRef = doc(collection(db, 'movimientos'));
+          transaction.set(movimientoEntradaRef, movimientoEntradaData);
+        }
+
+        // Write 4 y 5: Para traspasos externos, crear solicitud y notificación
         if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'externo') {
           const [usuarioDestinoId, almacenDestinoId] = formData.almacenDestino.split(':');
 
@@ -871,13 +943,13 @@ const MovementForm = () => {
                       required
                     >
                       <option value="">Seleccionar almacén</option>
-                      {warehouses.filter(w => w.id !== 'principal').map((warehouse) => (
+                      {warehouses.filter(w => w.id !== activeWarehouse).map((warehouse) => (
                         <option key={warehouse.id} value={warehouse.id}>
                           {warehouse.nombre} - {warehouse.ubicacion}
                         </option>
                       ))}
                     </select>
-                    {warehouses.filter(w => w.id !== 'principal').length === 0 && (
+                    {warehouses.filter(w => w.id !== activeWarehouse).length === 0 && (
                       <p className="text-xs text-orange-600 mt-1">
                         No tienes almacenes adicionales. Crea uno en Configuración → Gestión de Almacenes
                       </p>

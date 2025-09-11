@@ -284,7 +284,7 @@ const ProductForm = () => {
         'usuarios',
         currentUser.uid,
         'almacenes',
-        'principal',
+        activeWarehouse,
         'productos',
         existingProduct.sku
       );
@@ -297,7 +297,7 @@ const ProductForm = () => {
       // Registrar movimiento de entrada por la suma
       const movimientoData = {
         usuarioId: currentUser.uid,
-        almacenId: 'principal',
+        almacenId: activeWarehouse,
         productoSKU: existingProduct.sku,
         productoNombre: existingProduct.nombre,
         tipoMovimiento: 'entrada',
@@ -368,7 +368,7 @@ const ProductForm = () => {
         'usuarios',
         currentUser.uid,
         'almacenes',
-        'principal',
+        activeWarehouse,
         'productos',
         productData.sku
       );
@@ -490,7 +490,7 @@ const ProductForm = () => {
               'usuarios',
               currentUser.uid,
               'almacenes',
-              'principal',
+              activeWarehouse,
               'productos',
               product.sku
             )
