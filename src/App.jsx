@@ -10,6 +10,7 @@ import NotificationContainer from './components/NotificationContainer';
 import SettingsPanel from './components/SettingsPanel';
 import WarehouseManager from './components/WarehouseManager';
 import FriendsManager from './components/FriendsManager';
+import TransferRequestManager from './components/TransferRequestManager';
 import {
   Package,
   BarChart3,
@@ -36,6 +37,7 @@ function AppContent() {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showWarehouseManager, setShowWarehouseManager] = useState(false);
   const [showFriendsManager, setShowFriendsManager] = useState(false);
+  const [showTransferManager, setShowTransferManager] = useState(false);
 
   // Detectar si es móvil
   useEffect(() => {
@@ -213,14 +215,25 @@ function AppContent() {
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-gray-900">Notificaciones</h3>
-                        {notifications.length > 0 && (
+                        <div className="flex items-center space-x-3">
                           <button 
-                            onClick={() => setNotifications([])}
-                            className="text-sm text-blue-600 hover:text-blue-700"
+                            onClick={() => {
+                              setShowNotifications(false);
+                              setShowTransferManager(true);
+                            }}
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                           >
-                            Limpiar todas
+                            Ver Traspasos
                           </button>
-                        )}
+                          {notifications.length > 0 && (
+                            <button 
+                              onClick={() => setNotifications([])}
+                              className="text-sm text-gray-600 hover:text-gray-700"
+                            >
+                              Limpiar todas
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
@@ -468,6 +481,12 @@ function AppContent() {
       <FriendsManager
         isOpen={showFriendsManager}
         onClose={() => setShowFriendsManager(false)}
+      />
+
+      {/* Gestor de Traspasos */}
+      <TransferRequestManager
+        isOpen={showTransferManager}
+        onClose={() => setShowTransferManager(false)}
       />
     </div>
   );

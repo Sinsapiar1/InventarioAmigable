@@ -381,7 +381,11 @@ const MovementForm = () => {
     setError('');
 
     try {
-      const cantidad = parseFloat(formData.cantidad);
+      // Usar Number para evitar problemas de precisión con parseFloat
+      const cantidad = Number(formData.cantidad);
+      
+      // Redondear a 2 decimales para evitar problemas de precisión
+      const cantidadRedondeada = Math.round(cantidad * 100) / 100;
 
       // Usar transacción para garantizar consistencia
       await runTransaction(db, async (transaction) => {
@@ -406,9 +410,9 @@ const MovementForm = () => {
 
         let cantidadNueva = cantidadAnterior;
         if (formData.tipoMovimiento === 'entrada') {
-          cantidadNueva += cantidad;
+          cantidadNueva = Math.round((cantidadAnterior + cantidadRedondeada) * 100) / 100;
         } else {
-          cantidadNueva -= cantidad;
+          cantidadNueva = Math.round((cantidadAnterior - cantidadRedondeada) * 100) / 100;
           if (cantidadNueva < 0) {
             throw new Error('La operación resultaría en stock negativo');
           }
@@ -428,7 +432,7 @@ const MovementForm = () => {
           productoNombre: producto.nombre,
           tipoMovimiento: formData.tipoMovimiento,
           subTipo: formData.subTipo,
-          cantidad: cantidad,
+          cantidad: cantidadRedondeada,
           cantidadAnterior,
           cantidadNueva,
           razon: formData.razon.trim(),
@@ -440,19 +444,87 @@ const MovementForm = () => {
 
         const movimientoRef = doc(collection(db, 'movimientos'));
         transaction.set(movimientoRef, movimientoData);
+
+        // Si es traspaso externo, crear solicitud en lugar de ejecutar directamente
+        if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'externo') {
+          const [usuarioDestinoId, almacenDestinoId] = formData.almacenDestino.split(':');
+          
+          // Obtener datos del almacén destino
+          const almacenDestinoRef = doc(db, 'usuarios', usuarioDestinoId, 'almacenes', almacenDestinoId);
+          const almacenDestinoDoc = await transaction.get(almacenDestinoRef);
+          
+          // Obtener datos del usuario destino
+          const usuarioDestinoRef = doc(db, 'usuarios', usuarioDestinoId);
+          const usuarioDestinoDoc = await transaction.get(usuarioDestinoRef);
+
+          if (almacenDestinoDoc.exists() && usuarioDestinoDoc.exists()) {
+            const almacenDestino = almacenDestinoDoc.data();
+            const usuarioDestino = usuarioDestinoDoc.data();
+
+            // Crear solicitud de traspaso
+            const solicitudData = {
+              usuarioOrigenId: currentUser.uid,
+              usuarioOrigenNombre: userProfile?.nombreCompleto || currentUser.displayName,
+              usuarioOrigenEmail: currentUser.email,
+              almacenOrigenId: 'principal',
+              almacenOrigenNombre: 'Almacén Principal',
+              
+              usuarioDestinoId: usuarioDestinoId,
+              usuarioDestinoNombre: usuarioDestino.nombreCompleto,
+              usuarioDestinoEmail: usuarioDestino.email,
+              almacenDestinoId: almacenDestinoId,
+              almacenDestinoNombre: almacenDestino.nombre,
+              
+              productoSKU: formData.productoSKU,
+              productoNombre: producto.nombre,
+              productoCategoria: producto.categoria,
+              cantidad: cantidadRedondeada,
+              
+              razon: formData.razon.trim(),
+              observaciones: formData.observaciones.trim() || null,
+              numeroDocumento: formData.numeroDocumento.trim() || null,
+              
+              estado: 'pendiente',
+              fechaCreacion: new Date().toISOString(),
+              movimientoOrigenId: movimientoRef.id, // Referencia al movimiento de salida
+            };
+
+            const solicitudRef = doc(collection(db, 'solicitudes-traspaso'));
+            transaction.set(solicitudRef, solicitudData);
+
+            // Crear notificación para el usuario destino
+            const notificacionData = {
+              usuarioId: usuarioDestinoId,
+              tipo: 'solicitud_traspaso',
+              titulo: 'Nueva Solicitud de Traspaso',
+              mensaje: `${userProfile?.nombreCompleto || currentUser.displayName} quiere transferirte ${cantidadRedondeada} ${producto.nombre}`,
+              leida: false,
+              fecha: new Date().toISOString(),
+              datos: {
+                solicitudId: solicitudRef.id,
+                productoNombre: producto.nombre,
+                cantidad: cantidadRedondeada,
+                remitente: userProfile?.nombreCompleto || currentUser.displayName
+              }
+            };
+
+            const notificacionRef = doc(collection(db, 'notificaciones'));
+            transaction.set(notificacionRef, notificacionData);
+          }
+        }
       });
 
       const tipoLabel = formData.tipoMovimiento === 'entrada' ? 'Entrada' : 'Salida';
       const producto = products.find(p => p.sku === formData.productoSKU);
       
       setSuccess(
-        `${tipoLabel} registrada exitosamente: ${cantidad} unidades de ${producto.nombre}`
+        `${tipoLabel} registrada exitosamente: ${cantidadRedondeada} unidades de ${producto.nombre}`
       );
 
       // Mostrar notificación global
       if (window.showSuccess) {
         window.showSuccess(
-          `${tipoLabel} registrada: ${cantidad} unidades de ${producto.nombre}`
+          `${tipoLabel} registrada: ${cantidadRedondeada} unidades de ${producto.nombre}`
         );
       }
 
