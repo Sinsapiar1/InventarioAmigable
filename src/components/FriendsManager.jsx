@@ -127,12 +127,21 @@ const FriendsManager = ({ isOpen, onClose }) => {
   };
 
   const sendFriendRequest = async () => {
-    if (!searchEmail.trim()) {
+    const email = searchEmail.trim();
+    
+    if (!email) {
       setError('Ingresa un email válido');
       return;
     }
 
-    if (searchEmail.toLowerCase() === currentUser.email.toLowerCase()) {
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('El formato del email no es válido');
+      return;
+    }
+
+    if (email.toLowerCase() === currentUser.email.toLowerCase()) {
       setError('No puedes agregarte a ti mismo');
       return;
     }
@@ -148,7 +157,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
       let targetUser = null;
       snapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.email.toLowerCase() === searchEmail.toLowerCase()) {
+        if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
           targetUser = { id: doc.id, ...data };
         }
       });
