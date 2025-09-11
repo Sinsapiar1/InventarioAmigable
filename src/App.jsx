@@ -178,7 +178,8 @@ function AppContent() {
                   </h1>
                   {!isMobile && (
                     <p className="text-xs text-gray-500">
-                      {userProfile?.nombreCompleto || currentUser.displayName}
+                      {userProfile?.nombreCompleto || currentUser.displayName} • 
+                      <span className="text-gray-400 ml-1">by Raúl Pivet</span>
                     </p>
                   )}
                 </div>
@@ -416,6 +417,17 @@ function AppContent() {
                   </div>
                 </div>
               )}
+
+              {/* Información del desarrollador */}
+              <div className="mt-4 pt-3 border-t border-gray-200">
+                <div className="text-center">
+                  <p className="text-xs text-gray-400 mb-1">Desarrollado por</p>
+                  <p className="text-xs font-semibold text-gray-600">
+                    Raúl Jaime Pivet Álvarez
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">v2.0.0</p>
+                </div>
+              </div>
             </div>
           </div>
         </nav>
@@ -459,6 +471,33 @@ function AppContent() {
 
       {/* Padding bottom para la navegación móvil */}
       {isMobile && <div className="h-16"></div>}
+
+      {/* Footer profesional */}
+      <footer className="bg-white border-t border-gray-200 mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <div className="text-center sm:text-left">
+              <p className="text-sm text-gray-600">
+                <span className="font-semibold">Sistema de Inventario Pro</span> v2.0.0
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Sistema empresarial de gestión de inventarios
+              </p>
+            </div>
+            <div className="mt-3 sm:mt-0 text-center sm:text-right">
+              <p className="text-xs text-gray-400">
+                Desarrollado por
+              </p>
+              <p className="text-sm font-semibold text-gray-600">
+                Raúl Jaime Pivet Álvarez
+              </p>
+              <p className="text-xs text-gray-400">
+                Full Stack Developer • React + Firebase
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
 
       {/* Contenedor de notificaciones */}
       <NotificationContainer />

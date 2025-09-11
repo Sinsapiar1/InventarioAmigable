@@ -325,6 +325,9 @@ const Dashboard = () => {
           <p className="text-gray-600 mt-1">
             Resumen general de tu inventario • Última actualización: {new Date().toLocaleTimeString('es-ES')}
           </p>
+          <p className="text-xs text-gray-400 mt-2 hidden sm:block">
+            Sistema desarrollado por <span className="font-medium text-gray-500">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
+          </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center space-x-3">
           <button

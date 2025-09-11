@@ -204,6 +204,15 @@ const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsM
                     </span>
                   </div>
                 </div>
+
+                {/* Información del desarrollador */}
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-center">
+                    <p className="text-xs text-blue-600 font-medium">Sistema desarrollado por</p>
+                    <p className="text-sm font-bold text-blue-800">Raúl Jaime Pivet Álvarez</p>
+                    <p className="text-xs text-blue-600">Full Stack Developer • React + Firebase</p>
+                  </div>
+                </div>
               </div>
 
               {/* Acciones Avanzadas */}

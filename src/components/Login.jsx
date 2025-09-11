@@ -255,6 +255,17 @@ const Login = () => {
           <p className="text-sm text-gray-500">
             Sistema profesional de gestión de inventarios
           </p>
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <p className="text-xs text-gray-400">
+              Desarrollado por
+            </p>
+            <p className="text-sm font-semibold text-gray-600 mt-1">
+              Raúl Jaime Pivet Álvarez
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Full Stack Developer
+            </p>
+          </div>
         </div>
       </div>
     </div>
