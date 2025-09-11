@@ -133,105 +133,155 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
       const requestData = requestDoc.data();
 
       if (action === 'approve') {
-        // Ejecutar traspaso usando transacción
+        // APROBAR: Crear producto en destino
         await runTransaction(db, async (transaction) => {
-          // 1. Actualizar estado de la solicitud
-          transaction.update(requestRef, {
-            estado: 'aprobada',
-            fechaAprobacion: new Date().toISOString(),
-            aprobadoPor: currentUser.email
-          });
+          // Read 1: Leer solicitud
+          const requestDocRead = await transaction.get(requestRef);
+          const data = requestDocRead.data();
 
-          // 2. Crear entrada en almacén destino
-          const movimientoEntrada = {
-            usuarioId: currentUser.uid,
-            almacenId: requestData.almacenDestinoId,
-            productoSKU: requestData.productoSKU,
-            productoNombre: requestData.productoNombre,
-            tipoMovimiento: 'entrada',
-            subTipo: 'Traspaso externo recibido',
-            cantidad: requestData.cantidad,
-            cantidadAnterior: 0, // Se calculará al crear el producto si no existe
-            cantidadNueva: requestData.cantidad,
-            razon: `Traspaso aprobado desde ${requestData.usuarioOrigenNombre}`,
-            numeroDocumento: `TRX-${requestData.id.slice(-8)}`,
-            observaciones: `Traspaso externo de: ${requestData.usuarioOrigenNombre} (${requestData.usuarioOrigenEmail})`,
-            fecha: new Date().toISOString(),
-            creadoPor: currentUser.email,
-            traspasoId: requestData.id
-          };
-
-          // 3. Verificar si el producto existe en el almacén destino
+          // Read 2: Verificar producto en almacén destino
           const productoDestinoRef = doc(
             db,
             'usuarios',
             currentUser.uid,
             'almacenes',
-            requestData.almacenDestinoId,
+            data.almacenDestinoId,
             'productos',
-            requestData.productoSKU
+            data.productoSKU
           );
-
           const productoDestinoDoc = await transaction.get(productoDestinoRef);
 
+          // Write 1: Actualizar estado de solicitud
+          transaction.update(requestRef, {
+            estado: 'aprobada',
+            fechaAprobacion: new Date().toISOString(),
+            aprobadoPor: currentUser.email || ''
+          });
+
+          // Write 2: Crear o actualizar producto en destino
           if (productoDestinoDoc.exists()) {
-            // Producto existe, sumar cantidad
-            const productoDestino = productoDestinoDoc.data();
-            const cantidadAnteriorDestino = productoDestino.cantidadActual || 0;
-            const cantidadNuevaDestino = Math.round((cantidadAnteriorDestino + requestData.cantidad) * 100) / 100;
+            // SUMAR al producto existente
+            const productoExistente = productoDestinoDoc.data();
+            const cantidadAnterior = productoExistente.cantidadActual || 0;
+            const cantidadNueva = cantidadAnterior + data.cantidad;
 
             transaction.update(productoDestinoRef, {
-              cantidadActual: cantidadNuevaDestino,
+              cantidadActual: cantidadNueva,
               fechaActualizacion: new Date().toISOString()
             });
-
-            movimientoEntrada.cantidadAnterior = cantidadAnteriorDestino;
-            movimientoEntrada.cantidadNueva = cantidadNuevaDestino;
           } else {
-            // Producto no existe, crear con los datos del origen
+            // CREAR producto nuevo
             const nuevoProducto = {
-              sku: requestData.productoSKU,
-              nombre: requestData.productoNombre,
-              categoria: requestData.productoCategoria || 'Traspasos',
-              cantidadActual: requestData.cantidad,
+              sku: data.productoSKU,
+              nombre: data.productoNombre,
+              categoria: data.productoCategoria || 'Traspasos',
+              cantidadActual: data.cantidad,
               cantidadMinima: 5,
               precioVenta: 0,
               precioCompra: 0,
-              proveedor: `Traspaso de ${requestData.usuarioOrigenNombre}`,
+              proveedor: `Traspaso de ${data.usuarioOrigenNombre}`,
               ubicacionFisica: '',
-              descripcion: `Producto recibido por traspaso externo`,
+              descripcion: 'Producto recibido por traspaso externo',
               fechaCreacion: new Date().toISOString(),
               fechaActualizacion: new Date().toISOString(),
             };
 
             transaction.set(productoDestinoRef, nuevoProducto);
-            
-            movimientoEntrada.cantidadAnterior = 0;
-            movimientoEntrada.cantidadNueva = requestData.cantidad;
           }
 
-          // 4. Registrar movimiento de entrada
+          // Write 3: Registrar movimiento de entrada
+          const movimientoEntrada = {
+            usuarioId: currentUser.uid,
+            almacenId: data.almacenDestinoId,
+            productoSKU: data.productoSKU,
+            productoNombre: data.productoNombre,
+            tipoMovimiento: 'entrada',
+            subTipo: 'Traspaso externo aprobado',
+            cantidad: data.cantidad,
+            cantidadAnterior: productoDestinoDoc.exists() ? (productoDestinoDoc.data().cantidadActual || 0) : 0,
+            cantidadNueva: (productoDestinoDoc.exists() ? (productoDestinoDoc.data().cantidadActual || 0) : 0) + data.cantidad,
+            razon: `Traspaso aprobado desde ${data.usuarioOrigenNombre}`,
+            numeroDocumento: `TRX-${requestId.slice(-8)}`,
+            observaciones: `Traspaso externo de: ${data.usuarioOrigenNombre}`,
+            fecha: new Date().toISOString(),
+            creadoPor: currentUser.email || '',
+            traspasoId: requestId
+          };
+
           const movimientoRef = doc(collection(db, 'movimientos'));
           transaction.set(movimientoRef, movimientoEntrada);
         });
 
-        if (window.showSuccess) {
-          window.showSuccess(`Traspaso aprobado: ${requestData.cantidad} ${requestData.productoNombre} recibidas`);
-        }
-
-        // Generar PDF (simulado por ahora)
+        // Generar PDF
         generateTransferPDF(requestData);
 
-      } else {
-        // Rechazar solicitud
-        await updateDoc(requestRef, {
-          estado: 'rechazada',
-          fechaRechazo: new Date().toISOString(),
-          rechazadoPor: currentUser.email
+        if (window.showSuccess) {
+          window.showSuccess(`✅ Traspaso aprobado: ${requestData.cantidad} ${requestData.productoNombre} agregadas a tu inventario`);
+        }
+
+      } else if (action === 'reject') {
+        // RECHAZAR: Devolver stock al origen
+        await runTransaction(db, async (transaction) => {
+          // Read 1: Leer solicitud
+          const requestDocRead = await transaction.get(requestRef);
+          const data = requestDocRead.data();
+
+          // Read 2: Leer producto origen para devolver stock
+          const productoOrigenRef = doc(
+            db,
+            'usuarios',
+            data.usuarioOrigenId,
+            'almacenes',
+            data.almacenOrigenId,
+            'productos',
+            data.productoSKU
+          );
+          const productoOrigenDoc = await transaction.get(productoOrigenRef);
+
+          // Write 1: Actualizar estado de solicitud
+          transaction.update(requestRef, {
+            estado: 'rechazada',
+            fechaRechazo: new Date().toISOString(),
+            rechazadoPor: currentUser.email || ''
+          });
+
+          // Write 2: DEVOLVER stock al origen
+          if (productoOrigenDoc.exists()) {
+            const productoOrigen = productoOrigenDoc.data();
+            const cantidadAnterior = productoOrigen.cantidadActual || 0;
+            const cantidadDevuelta = cantidadAnterior + data.cantidad;
+
+            transaction.update(productoOrigenRef, {
+              cantidadActual: cantidadDevuelta,
+              fechaActualizacion: new Date().toISOString()
+            });
+
+            // Write 3: Registrar movimiento de devolución
+            const movimientoDevolucion = {
+              usuarioId: data.usuarioOrigenId,
+              almacenId: data.almacenOrigenId,
+              productoSKU: data.productoSKU,
+              productoNombre: data.productoNombre,
+              tipoMovimiento: 'entrada',
+              subTipo: 'Devolución por rechazo de traspaso',
+              cantidad: data.cantidad,
+              cantidadAnterior: cantidadAnterior,
+              cantidadNueva: cantidadDevuelta,
+              razon: `Traspaso rechazado por ${currentUser.email}. Stock devuelto.`,
+              numeroDocumento: `DEV-${requestId.slice(-8)}`,
+              observaciones: `Devolución automática por rechazo de traspaso`,
+              fecha: new Date().toISOString(),
+              creadoPor: 'sistema',
+              traspasoId: requestId
+            };
+
+            const movimientoRef = doc(collection(db, 'movimientos'));
+            transaction.set(movimientoRef, movimientoDevolucion);
+          }
         });
 
         if (window.showWarning) {
-          window.showWarning(`Traspaso rechazado: ${requestData.cantidad} ${requestData.productoNombre}`);
+          window.showWarning(`❌ Traspaso rechazado. Stock devuelto al usuario origen.`);
         }
       }
 
@@ -239,7 +289,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error('Error procesando solicitud:', error);
       if (window.showError) {
-        window.showError('Error al procesar la solicitud de traspaso');
+        window.showError('Error al procesar la solicitud: ' + error.message);
       }
     }
   };
