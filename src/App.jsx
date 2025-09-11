@@ -65,7 +65,7 @@ function AppContent() {
       if (showNotifications && !event.target.closest('.notifications-panel')) {
         setShowNotifications(false);
       }
-      if (showSettings && !event.target.closest('.settings-panel')) {
+      if (showSettings && !event.target.closest('.settings-panel') && !event.target.closest('.settings-modal')) {
         setShowSettings(false);
       }
       if (showQuickActions && !event.target.closest('.quick-actions-panel')) {
