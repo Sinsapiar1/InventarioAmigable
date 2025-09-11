@@ -281,10 +281,10 @@ const MovementForm = () => {
       return false;
     }
 
-    // Validar cantidad
-    const cantidad = parseFloat(formData.cantidad);
+    // Validar cantidad (números enteros para inventarios)
+    const cantidad = parseInt(formData.cantidad);
     if (!formData.cantidad || isNaN(cantidad) || cantidad <= 0) {
-      setError('La cantidad debe ser un número mayor a 0');
+      setError('La cantidad debe ser un número entero mayor a 0');
       return false;
     }
 
@@ -293,9 +293,9 @@ const MovementForm = () => {
       return false;
     }
 
-    // Validar decimales (máximo 2)
-    if (formData.cantidad.toString().split('.')[1]?.length > 2) {
-      setError('La cantidad no puede tener más de 2 decimales');
+    // Verificar que sea número entero
+    if (formData.cantidad.toString().includes('.')) {
+      setError('La cantidad debe ser un número entero (sin decimales)');
       return false;
     }
 
@@ -381,11 +381,11 @@ const MovementForm = () => {
     setError('');
 
     try {
-      // Usar Number para evitar problemas de precisión con parseFloat
-      const cantidad = Number(formData.cantidad);
+      // Usar parseInt para números enteros (inventarios no usan decimales)
+      const cantidad = parseInt(formData.cantidad);
       
-      // Redondear a 2 decimales para evitar problemas de precisión
-      const cantidadRedondeada = Math.round(cantidad * 100) / 100;
+      // No necesitamos redondeo para números enteros
+      const cantidadFinal = cantidad;
 
       // Usar transacción con TODOS los reads ANTES de los writes
       await runTransaction(db, async (transaction) => {
@@ -428,9 +428,9 @@ const MovementForm = () => {
 
         let cantidadNueva = cantidadAnterior;
         if (formData.tipoMovimiento === 'entrada') {
-          cantidadNueva = Math.round((cantidadAnterior + cantidadRedondeada) * 100) / 100;
+          cantidadNueva = cantidadAnterior + cantidadFinal;
         } else {
-          cantidadNueva = Math.round((cantidadAnterior - cantidadRedondeada) * 100) / 100;
+          cantidadNueva = cantidadAnterior - cantidadFinal;
           if (cantidadNueva < 0) {
             throw new Error('La operación resultaría en stock negativo');
           }
@@ -452,7 +452,7 @@ const MovementForm = () => {
           productoNombre: producto.nombre,
           tipoMovimiento: formData.tipoMovimiento,
           subTipo: formData.subTipo,
-          cantidad: cantidadRedondeada,
+          cantidad: cantidadFinal,
           cantidadAnterior,
           cantidadNueva,
           razon: formData.razon.trim(),
@@ -464,6 +464,9 @@ const MovementForm = () => {
 
         const movimientoRef = doc(collection(db, 'movimientos'));
         transaction.set(movimientoRef, movimientoData);
+        
+        // Obtener ID del movimiento para referencias
+        const movimientoId = movimientoRef.id;
 
         // Write 3 y 4: Para traspasos externos, crear solicitud y notificación
         if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'externo') {
@@ -490,7 +493,7 @@ const MovementForm = () => {
               productoSKU: formData.productoSKU,
               productoNombre: producto.nombre || '',
               productoCategoria: producto.categoria || 'General',
-              cantidad: cantidadRedondeada,
+              cantidad: cantidadFinal,
               
               razon: formData.razon.trim() || 'Traspaso',
               observaciones: formData.observaciones.trim() || '',
@@ -498,10 +501,11 @@ const MovementForm = () => {
               
               estado: 'pendiente',
               fechaCreacion: new Date().toISOString(),
-              movimientoOrigenId: movimientoRef.id,
+              movimientoOrigenId: movimientoId,
             };
 
             const solicitudRef = doc(collection(db, 'solicitudes-traspaso'));
+            const solicitudId = solicitudRef.id;
             transaction.set(solicitudRef, solicitudData);
 
             // Write 4: Crear notificación
@@ -510,13 +514,13 @@ const MovementForm = () => {
               usuarioId: usuarioDestinoId,
               tipo: 'solicitud_traspaso',
               titulo: 'Nueva Solicitud de Traspaso',
-              mensaje: `${remitenteNombre} quiere transferirte ${cantidadRedondeada} ${producto.nombre}`,
+              mensaje: `${remitenteNombre} quiere transferirte ${cantidadFinal} ${producto.nombre}`,
               leida: false,
               fecha: new Date().toISOString(),
               datos: {
-                solicitudId: solicitudRef.id,
+                solicitudId: solicitudId,
                 productoNombre: producto.nombre || '',
-                cantidad: cantidadRedondeada,
+                cantidad: cantidadFinal,
                 remitente: remitenteNombre
               }
             };
@@ -530,14 +534,25 @@ const MovementForm = () => {
       const tipoLabel = formData.tipoMovimiento === 'entrada' ? 'Entrada' : 'Salida';
       const producto = products.find(p => p.sku === formData.productoSKU);
       
-      setSuccess(
-        `${tipoLabel} registrada exitosamente: ${cantidadRedondeada} unidades de ${producto.nombre}`
-      );
+      // Mensaje específico para traspasos externos
+      if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'externo') {
+        setSuccess(
+          `Solicitud de traspaso enviada: ${cantidadFinal} unidades de ${producto.nombre}. El usuario destino debe aprobar la solicitud.`
+        );
+        
+        if (window.showInfo) {
+          window.showInfo('Solicitud enviada. El usuario destino recibirá una notificación para aprobar/rechazar el traspaso.');
+        }
+      } else {
+        setSuccess(
+          `${tipoLabel} registrada exitosamente: ${cantidadFinal} unidades de ${producto.nombre}`
+        );
+      }
 
       // Mostrar notificación global
       if (window.showSuccess) {
         window.showSuccess(
-          `${tipoLabel} registrada: ${cantidadRedondeada} unidades de ${producto.nombre}`
+          `${tipoLabel} registrada: ${cantidadFinal} unidades de ${producto.nombre}`
         );
       }
 
@@ -953,8 +968,8 @@ const MovementForm = () => {
                   value={formData.cantidad}
                   onChange={handleInputChange}
                   className="input-field pl-10"
-                  min="0.01"
-                  step="0.01"
+                  min="1"
+                  step="1"
                   placeholder="0"
                   disabled={submitting}
                   required
