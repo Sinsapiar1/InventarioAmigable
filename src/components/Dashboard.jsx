@@ -323,7 +323,7 @@ const Dashboard = () => {
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             <span className="text-sm">Actualizar</span>
           </button>
-          <div className="relative">
+          <div className="relative quick-actions-panel">
             <button 
               onClick={() => setShowQuickActions(!showQuickActions)}
               className="btn-primary flex items-center space-x-2"

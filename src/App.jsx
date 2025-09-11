@@ -68,11 +68,14 @@ function AppContent() {
       if (showSettings && !event.target.closest('.settings-panel')) {
         setShowSettings(false);
       }
+      if (showQuickActions && !event.target.closest('.quick-actions-panel')) {
+        setShowQuickActions(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showUserMenu, isMobileMenuOpen, showNotifications, showSettings]);
+  }, [showUserMenu, isMobileMenuOpen, showNotifications, showSettings, showQuickActions]);
 
   // Listener para cambios de vista desde componentes
   useEffect(() => {
