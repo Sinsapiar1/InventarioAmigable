@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   collection, 
@@ -47,9 +47,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (!currentUser) return;
     loadDashboardData();
-    
-    // Configurar listeners en tiempo real
-    setupRealtimeListeners();
   }, [currentUser]);
 
   // Configurar listeners en tiempo real
@@ -260,24 +257,24 @@ const Dashboard = () => {
   };
 
   // Refrescar datos manualmente
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
     await loadDashboardData();
     setRefreshing(false);
-  }, [loadDashboardData]);
+  };
 
-  // Formatear números a moneda (memoizado)
-  const formatCurrency = useCallback((amount) => {
+  // Formatear números a moneda
+  const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  }, []);
+  };
 
-  // Formatear fecha relativa (memoizado)
-  const formatRelativeDate = useCallback((dateString) => {
+  // Formatear fecha relativa
+  const formatRelativeDate = (dateString) => {
     try {
       const date = new Date(dateString);
       const now = new Date();
@@ -296,22 +293,7 @@ const Dashboard = () => {
     } catch {
       return 'Fecha inválida';
     }
-  }, []);
-
-  // Productos con stock bajo memoizados
-  const lowStockProductsMemo = useMemo(() => {
-    return lowStockProducts.slice(0, 5);
-  }, [lowStockProducts]);
-
-  // Productos recientes memoizados
-  const recentProductsMemo = useMemo(() => {
-    return recentProducts.slice(0, 5);
-  }, [recentProducts]);
-
-  // Movimientos recientes memoizados
-  const recentMovementsMemo = useMemo(() => {
-    return recentMovements.slice(0, 5);
-  }, [recentMovements]);
+  };
 
   if (loading) {
     return (
@@ -444,9 +426,9 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="p-6">
-            {recentProductsMemo.length > 0 ? (
+            {recentProducts.length > 0 ? (
               <div className="space-y-4">
-                {recentProductsMemo.map((producto) => (
+                {recentProducts.slice(0, 5).map((producto) => (
                   <div key={producto.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
@@ -484,9 +466,9 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="p-6">
-            {lowStockProductsMemo.length > 0 ? (
+            {lowStockProducts.length > 0 ? (
               <div className="space-y-4">
-                {lowStockProductsMemo.map((producto) => (
+                {lowStockProducts.slice(0, 5).map((producto) => (
                   <div key={producto.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
@@ -523,7 +505,7 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="overflow-hidden">
-          {recentMovementsMemo.length > 0 ? (
+          {recentMovements.length > 0 ? (
             <>
               {/* Vista de tabla para desktop */}
               <div className="hidden md:block overflow-x-auto">
@@ -545,7 +527,7 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentMovementsMemo.map((movimiento) => (
+                    {recentMovements.slice(0, 5).map((movimiento) => (
                       <tr key={movimiento.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
@@ -582,7 +564,7 @@ const Dashboard = () => {
 
               {/* Vista de lista para móvil */}
               <div className="md:hidden space-y-3 p-4">
-                {recentMovementsMemo.map((movimiento) => (
+                {recentMovements.slice(0, 5).map((movimiento) => (
                   <div
                     key={movimiento.id}
                     className="bg-gray-50 rounded-lg p-3 border border-gray-200"

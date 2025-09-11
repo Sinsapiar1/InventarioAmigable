@@ -46,10 +46,10 @@ const ProductForm = () => {
     sku: '',
     nombre: '',
     categoria: '',
-    cantidadActual: 0,
-    cantidadMinima: 5,
-    precioVenta: 0,
-    precioCompra: 0,
+    cantidadActual: '',
+    cantidadMinima: '',
+    precioVenta: '',
+    precioCompra: '',
     proveedor: '',
     ubicacionFisica: '',
     descripcion: '',
@@ -114,7 +114,7 @@ const ProductForm = () => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: value,
     }));
 
     // Limpiar errores al escribir
@@ -162,29 +162,33 @@ const ProductForm = () => {
     }
 
     // Validar cantidades
-    if (formData.cantidadActual < 0) {
+    const cantidadActual = parseFloat(formData.cantidadActual) || 0;
+    const cantidadMinima = parseFloat(formData.cantidadMinima) || 0;
+    const precioVenta = parseFloat(formData.precioVenta) || 0;
+    const precioCompra = parseFloat(formData.precioCompra) || 0;
+
+    if (cantidadActual < 0) {
       setError('La cantidad actual no puede ser negativa');
       return false;
     }
 
-    if (formData.cantidadMinima < 0) {
+    if (cantidadMinima < 0) {
       setError('La cantidad mínima no puede ser negativa');
       return false;
     }
 
-    if (formData.cantidadMinima > 10000) {
+    if (cantidadMinima > 10000) {
       setError('La cantidad mínima no puede ser mayor a 10,000');
       return false;
     }
 
     // Validar precios
-    if (formData.precioVenta < 0 || formData.precioCompra < 0) {
+    if (precioVenta < 0 || precioCompra < 0) {
       setError('Los precios no pueden ser negativos');
       return false;
     }
 
-    if (formData.precioVenta > 0 && formData.precioCompra > 0 && 
-        formData.precioVenta <= formData.precioCompra) {
+    if (precioVenta > 0 && precioCompra > 0 && precioVenta <= precioCompra) {
       setError('El precio de venta debe ser mayor al precio de compra');
       return false;
     }
@@ -231,9 +235,16 @@ const ProductForm = () => {
 
     try {
       const productData = {
-        ...formData,
         sku: formData.sku.toUpperCase().trim(),
         nombre: formData.nombre.trim(),
+        categoria: formData.categoria,
+        cantidadActual: parseFloat(formData.cantidadActual) || 0,
+        cantidadMinima: parseFloat(formData.cantidadMinima) || 5,
+        precioVenta: parseFloat(formData.precioVenta) || 0,
+        precioCompra: parseFloat(formData.precioCompra) || 0,
+        proveedor: formData.proveedor.trim(),
+        ubicacionFisica: formData.ubicacionFisica.trim(),
+        descripcion: formData.descripcion.trim(),
         fechaCreacion: editingProduct
           ? editingProduct.fechaCreacion
           : new Date().toISOString(),
@@ -302,10 +313,10 @@ const ProductForm = () => {
       sku: '',
       nombre: '',
       categoria: '',
-      cantidadActual: 0,
-      cantidadMinima: 5,
-      precioVenta: 0,
-      precioCompra: 0,
+      cantidadActual: '',
+      cantidadMinima: '',
+      precioVenta: '',
+      precioCompra: '',
       proveedor: '',
       ubicacionFisica: '',
       descripcion: '',
@@ -319,13 +330,13 @@ const ProductForm = () => {
   // Editar producto
   const handleEdit = (product) => {
     setFormData({
-      sku: product.sku,
-      nombre: product.nombre,
-      categoria: product.categoria,
-      cantidadActual: product.cantidadActual || 0,
-      cantidadMinima: product.cantidadMinima || 5,
-      precioVenta: product.precioVenta || 0,
-      precioCompra: product.precioCompra || 0,
+      sku: product.sku || '',
+      nombre: product.nombre || '',
+      categoria: product.categoria || '',
+      cantidadActual: product.cantidadActual ? product.cantidadActual.toString() : '',
+      cantidadMinima: product.cantidadMinima ? product.cantidadMinima.toString() : '',
+      precioVenta: product.precioVenta ? product.precioVenta.toString() : '',
+      precioCompra: product.precioCompra ? product.precioCompra.toString() : '',
       proveedor: product.proveedor || '',
       ubicacionFisica: product.ubicacionFisica || '',
       descripcion: product.descripcion || '',
@@ -572,6 +583,7 @@ const ProductForm = () => {
                   className="input-field"
                   min="0"
                   step="1"
+                  placeholder="0"
                   disabled={submitting}
                 />
               </div>
@@ -589,6 +601,7 @@ const ProductForm = () => {
                   className="input-field"
                   min="0"
                   step="1"
+                  placeholder="5"
                   disabled={submitting}
                 />
               </div>
@@ -607,6 +620,7 @@ const ProductForm = () => {
                     className="input-field pl-10"
                     min="0"
                     step="0.01"
+                    placeholder="0.00"
                     disabled={submitting}
                   />
                   <DollarSign className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
@@ -627,6 +641,7 @@ const ProductForm = () => {
                     className="input-field pl-10"
                     min="0"
                     step="0.01"
+                    placeholder="0.00"
                     disabled={submitting}
                   />
                   <DollarSign className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />

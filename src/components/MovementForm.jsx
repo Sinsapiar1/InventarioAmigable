@@ -235,15 +235,10 @@ const MovementForm = () => {
       const stockMinimo = producto.cantidadMinima || 5;
       
       if (stockFinal < stockMinimo && stockFinal >= 0) {
-        const confirmarStockBajo = window.confirm(
-          `Advertencia: Este movimiento dejará el stock por debajo del mínimo.\n\n` +
-          `Stock final: ${stockFinal}\n` +
-          `Stock mínimo: ${stockMinimo}\n\n` +
-          `¿Deseas continuar?`
-        );
-        
-        if (!confirmarStockBajo) {
-          return false;
+        if (window.showWarning) {
+          window.showWarning(
+            `Este movimiento dejará el stock por debajo del mínimo (${stockMinimo}). Stock final: ${stockFinal}`
+          );
         }
       }
     }
