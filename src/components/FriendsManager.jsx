@@ -154,7 +154,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
       });
 
       if (!targetUser) {
-        setError('No se encontró un usuario con ese email');
+        setError('No se encontró un usuario registrado con ese email. El usuario debe tener una cuenta en el sistema de inventarios.');
         return;
       }
 
