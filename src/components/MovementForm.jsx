@@ -400,13 +400,13 @@ const MovementForm = () => {
       await runTransaction(db, async (transaction) => {
         // ===== FASE 1: TODOS LOS READS PRIMERO =====
         
-        // Read 1: Producto origen
+        // Read 1: Producto origen (usar almacén activo)
         const productoRef = doc(
           db,
           'usuarios',
           currentUser.uid,
           'almacenes',
-          'principal',
+          activeWarehouse,
           'productos',
           formData.productoSKU
         );
@@ -456,7 +456,7 @@ const MovementForm = () => {
         // Write 2: Crear movimiento
         const movimientoData = {
           usuarioId: currentUser.uid,
-          almacenId: 'principal',
+          almacenId: activeWarehouse,
           productoSKU: formData.productoSKU,
           productoNombre: producto.nombre,
           tipoMovimiento: formData.tipoMovimiento,
@@ -490,8 +490,8 @@ const MovementForm = () => {
               usuarioOrigenId: currentUser.uid,
               usuarioOrigenNombre: userProfile?.nombreCompleto || currentUser.displayName || 'Usuario',
               usuarioOrigenEmail: currentUser.email || '',
-              almacenOrigenId: 'principal',
-              almacenOrigenNombre: 'Almacén Principal',
+              almacenOrigenId: activeWarehouse,
+              almacenOrigenNombre: getActiveWarehouse().nombre,
               
               usuarioDestinoId: usuarioDestinoId,
               usuarioDestinoNombre: usuarioDestino.nombreCompleto || usuarioDestino.displayName || 'Usuario',
