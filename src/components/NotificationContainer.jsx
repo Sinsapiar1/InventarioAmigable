@@ -1,98 +1,167 @@
-import React from 'react';
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Info,
+  X,
+} from 'lucide-react';
 
-const NotificationContainer = ({ notifications, removeNotification }) => {
-  if (!notifications || notifications.length === 0) return null;
+const NotificationContainer = () => {
+  const [notifications, setNotifications] = useState([]);
+
+  // Función global para agregar notificaciones
+  window.addNotification = (notification) => {
+    const id = Date.now() + Math.random();
+    const newNotification = {
+      id,
+      type: 'info',
+      title: '',
+      message: '',
+      duration: 5000,
+      persistent: false,
+      ...notification,
+    };
+
+    setNotifications((prev) => [...prev, newNotification]);
+
+    // Auto-eliminar si no es persistente
+    if (!newNotification.persistent && newNotification.duration > 0) {
+      setTimeout(() => {
+        removeNotification(id);
+      }, newNotification.duration);
+    }
+
+    return id;
+  };
+
+  // Métodos de conveniencia globales
+  window.showSuccess = (message, options = {}) => {
+    return window.addNotification({
+      type: 'success',
+      title: 'Éxito',
+      message,
+      ...options,
+    });
+  };
+
+  window.showError = (message, options = {}) => {
+    return window.addNotification({
+      type: 'error',
+      title: 'Error',
+      message,
+      duration: 7000,
+      ...options,
+    });
+  };
+
+  window.showWarning = (message, options = {}) => {
+    return window.addNotification({
+      type: 'warning',
+      title: 'Advertencia',
+      message,
+      duration: 6000,
+      ...options,
+    });
+  };
+
+  window.showInfo = (message, options = {}) => {
+    return window.addNotification({
+      type: 'info',
+      title: 'Información',
+      message,
+      ...options,
+    });
+  };
+
+  const removeNotification = (id) => {
+    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+  };
 
   const getIcon = (type) => {
     switch (type) {
       case 'success':
-        return CheckCircle;
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'error':
-        return AlertCircle;
+        return <XCircle className="w-5 h-5 text-red-600" />;
       case 'warning':
-        return AlertTriangle;
+        return <AlertTriangle className="w-5 h-5 text-orange-600" />;
       case 'info':
       default:
-        return Info;
+        return <Info className="w-5 h-5 text-blue-600" />;
     }
   };
 
-  const getColors = (type) => {
+  const getStyles = (type) => {
     switch (type) {
       case 'success':
-        return {
-          bg: 'bg-green-50',
-          border: 'border-green-200',
-          icon: 'text-green-600',
-          title: 'text-green-800',
-          message: 'text-green-700'
-        };
+        return 'bg-green-50 border-green-200 text-green-800';
       case 'error':
-        return {
-          bg: 'bg-red-50',
-          border: 'border-red-200',
-          icon: 'text-red-600',
-          title: 'text-red-800',
-          message: 'text-red-700'
-        };
+        return 'bg-red-50 border-red-200 text-red-800';
       case 'warning':
-        return {
-          bg: 'bg-orange-50',
-          border: 'border-orange-200',
-          icon: 'text-orange-600',
-          title: 'text-orange-800',
-          message: 'text-orange-700'
-        };
+        return 'bg-orange-50 border-orange-200 text-orange-800';
       case 'info':
       default:
-        return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          icon: 'text-blue-600',
-          title: 'text-blue-800',
-          message: 'text-blue-700'
-        };
+        return 'bg-blue-50 border-blue-200 text-blue-800';
     }
   };
 
+  if (notifications.length === 0) return null;
+
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-      {notifications.map((notification) => {
-        const Icon = getIcon(notification.type);
-        const colors = getColors(notification.type);
-        
-        return (
-          <div
-            key={notification.id}
-            className={`${colors.bg} ${colors.border} border rounded-lg p-4 shadow-lg animate-fade-in`}
-          >
-            <div className="flex items-start space-x-3">
-              <Icon className={`w-5 h-5 ${colors.icon} flex-shrink-0 mt-0.5`} />
-              
-              <div className="flex-1 min-w-0">
-                {notification.title && (
-                  <h4 className={`text-sm font-medium ${colors.title} mb-1`}>
-                    {notification.title}
-                  </h4>
-                )}
-                <p className={`text-sm ${colors.message}`}>
-                  {notification.message}
-                </p>
-              </div>
-              
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full">
+      {notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className={`
+            ${getStyles(notification.type)}
+            border rounded-lg p-4 shadow-lg backdrop-blur-sm
+            animate-fade-in transition-all duration-300 ease-out
+            transform translate-x-0 opacity-100
+          `}
+          style={{
+            animation: 'slideInRight 0.3s ease-out',
+          }}
+        >
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              {getIcon(notification.type)}
             </div>
+            <div className="flex-1 min-w-0">
+              {notification.title && (
+                <p className="font-semibold text-sm">{notification.title}</p>
+              )}
+              <p className={`text-sm ${notification.title ? 'mt-1' : ''}`}>
+                {notification.message}
+              </p>
+            </div>
+            <button
+              onClick={() => removeNotification(notification.id)}
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 };
+
+// Estilos para la animación
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+`;
+document.head.appendChild(style);
 
 export default NotificationContainer;

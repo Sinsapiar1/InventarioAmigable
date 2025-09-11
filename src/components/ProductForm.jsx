@@ -12,6 +12,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
+import ConfirmDialog from './ConfirmDialog';
+import { useConfirm } from '../hooks/useConfirm';
 import {
   Package,
   Plus,
@@ -19,6 +21,7 @@ import {
   Edit,
   Trash2,
   AlertCircle,
+  AlertTriangle,
   Check,
   X,
   DollarSign,
@@ -29,6 +32,7 @@ import {
 
 const ProductForm = () => {
   const { currentUser } = useAuth();
+  const { confirmState, closeConfirm, handleConfirm, confirmDelete } = useConfirm();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -119,21 +123,45 @@ const ProductForm = () => {
 
   // Validar formulario
   const validateForm = () => {
+    // Validar SKU
     if (!formData.sku.trim()) {
       setError('El SKU es obligatorio');
       return false;
     }
 
+    if (formData.sku.trim().length < 3) {
+      setError('El SKU debe tener al menos 3 caracteres');
+      return false;
+    }
+
+    if (!/^[A-Z0-9-]+$/i.test(formData.sku.trim())) {
+      setError('El SKU solo puede contener letras, números y guiones');
+      return false;
+    }
+
+    // Validar nombre
     if (!formData.nombre.trim()) {
       setError('El nombre del producto es obligatorio');
       return false;
     }
 
+    if (formData.nombre.trim().length < 2) {
+      setError('El nombre debe tener al menos 2 caracteres');
+      return false;
+    }
+
+    if (formData.nombre.trim().length > 100) {
+      setError('El nombre no puede tener más de 100 caracteres');
+      return false;
+    }
+
+    // Validar categoría
     if (!formData.categoria) {
       setError('Selecciona una categoría');
       return false;
     }
 
+    // Validar cantidades
     if (formData.cantidadActual < 0) {
       setError('La cantidad actual no puede ser negativa');
       return false;
@@ -144,15 +172,43 @@ const ProductForm = () => {
       return false;
     }
 
+    if (formData.cantidadMinima > 10000) {
+      setError('La cantidad mínima no puede ser mayor a 10,000');
+      return false;
+    }
+
+    // Validar precios
     if (formData.precioVenta < 0 || formData.precioCompra < 0) {
       setError('Los precios no pueden ser negativos');
       return false;
     }
 
+    if (formData.precioVenta > 0 && formData.precioCompra > 0 && 
+        formData.precioVenta <= formData.precioCompra) {
+      setError('El precio de venta debe ser mayor al precio de compra');
+      return false;
+    }
+
+    // Validar campos opcionales
+    if (formData.proveedor && formData.proveedor.length > 100) {
+      setError('El nombre del proveedor no puede tener más de 100 caracteres');
+      return false;
+    }
+
+    if (formData.ubicacionFisica && formData.ubicacionFisica.length > 50) {
+      setError('La ubicación física no puede tener más de 50 caracteres');
+      return false;
+    }
+
+    if (formData.descripcion && formData.descripcion.length > 500) {
+      setError('La descripción no puede tener más de 500 caracteres');
+      return false;
+    }
+
     // Validar SKU único (solo si no estamos editando o si el SKU cambió)
-    if (!editingProduct || editingProduct.sku !== formData.sku) {
+    if (!editingProduct || editingProduct.sku !== formData.sku.toUpperCase().trim()) {
       const skuExists = products.some(
-        (product) => product.sku.toLowerCase() === formData.sku.toLowerCase()
+        (product) => product.sku.toLowerCase() === formData.sku.toLowerCase().trim()
       );
 
       if (skuExists) {
@@ -197,9 +253,19 @@ const ProductForm = () => {
       if (editingProduct) {
         await updateDoc(productRef, productData);
         setSuccess('Producto actualizado correctamente');
+        
+        // Mostrar notificación global
+        if (window.showSuccess) {
+          window.showSuccess(`Producto "${productData.nombre}" actualizado correctamente`);
+        }
       } else {
         await setDoc(productRef, productData);
         setSuccess('Producto creado correctamente');
+        
+        // Mostrar notificación global
+        if (window.showSuccess) {
+          window.showSuccess(`Producto "${productData.nombre}" creado correctamente`);
+        }
       }
 
       // Resetear formulario
@@ -207,7 +273,24 @@ const ProductForm = () => {
       await loadProducts();
     } catch (error) {
       console.error('Error guardando producto:', error);
-      setError('Error al guardar el producto');
+      
+      // Determinar el mensaje de error específico
+      let errorMessage = 'Error al guardar el producto';
+      
+      if (error.code === 'permission-denied') {
+        errorMessage = 'No tienes permisos para realizar esta acción';
+      } else if (error.code === 'network-request-failed') {
+        errorMessage = 'Error de conexión. Verifica tu internet';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      
+      // Mostrar notificación global
+      if (window.showError) {
+        window.showError(errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -255,32 +338,77 @@ const ProductForm = () => {
 
   // Eliminar producto
   const handleDelete = async (product) => {
-    if (
-      !window.confirm(
-        `¿Estás seguro de eliminar el producto "${product.nombre}"?`
-      )
-    ) {
-      return;
-    }
+    const details = (
+      <div className="space-y-2">
+        <div className="flex justify-between">
+          <span className="font-medium">SKU:</span>
+          <span>{product.sku}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="font-medium">Stock actual:</span>
+          <span className={product.cantidadActual > 0 ? 'text-orange-600' : 'text-gray-600'}>
+            {product.cantidadActual || 0} unidades
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="font-medium">Categoría:</span>
+          <span>{product.categoria}</span>
+        </div>
+      </div>
+    );
 
-    try {
-      await deleteDoc(
-        doc(
-          db,
-          'usuarios',
-          currentUser.uid,
-          'almacenes',
-          'principal',
-          'productos',
-          product.sku
-        )
-      );
-      setSuccess('Producto eliminado correctamente');
-      await loadProducts();
-    } catch (error) {
-      console.error('Error eliminando producto:', error);
-      setError('Error al eliminar el producto');
-    }
+    await confirmDelete(
+      product.nombre,
+      async () => {
+        try {
+          await deleteDoc(
+            doc(
+              db,
+              'usuarios',
+              currentUser.uid,
+              'almacenes',
+              'principal',
+              'productos',
+              product.sku
+            )
+          );
+          
+          setSuccess('Producto eliminado correctamente');
+          
+          // Mostrar notificación global
+          if (window.showSuccess) {
+            window.showSuccess(`Producto "${product.nombre}" eliminado correctamente`);
+          }
+          
+          await loadProducts();
+        } catch (error) {
+          console.error('Error eliminando producto:', error);
+          
+          // Determinar el mensaje de error específico
+          let errorMessage = 'Error al eliminar el producto';
+          
+          if (error.code === 'permission-denied') {
+            errorMessage = 'No tienes permisos para eliminar este producto';
+          } else if (error.code === 'not-found') {
+            errorMessage = 'El producto ya no existe';
+          } else if (error.code === 'network-request-failed') {
+            errorMessage = 'Error de conexión. Verifica tu internet';
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          setError(errorMessage);
+          
+          // Mostrar notificación global
+          if (window.showError) {
+            window.showError(errorMessage);
+          }
+          
+          throw error; // Re-lanzar para que el diálogo maneje el error
+        }
+      },
+      details
+    );
   };
 
   // Filtrar productos por búsqueda
@@ -324,7 +452,7 @@ const ProductForm = () => {
         <div className="mt-4 sm:mt-0">
           <button
             onClick={() => setShowForm(true)}
-            className="btn-primary flex items-center space-x-2"
+            className="btn-primary flex items-center justify-center space-x-2 w-full sm:w-auto min-h-[48px]"
           >
             <Plus className="w-4 h-4" />
             <span>Nuevo Producto</span>
@@ -364,8 +492,8 @@ const ProductForm = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="p-4 md:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* SKU */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -562,7 +690,7 @@ const ProductForm = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="btn-primary flex items-center justify-center space-x-2"
+                className="btn-primary flex items-center justify-center space-x-2 w-full sm:w-auto min-h-[48px]"
               >
                 {submitting ? (
                   <LoadingSpinner size="sm" text="" />
@@ -578,7 +706,7 @@ const ProductForm = () => {
               <button
                 type="button"
                 onClick={resetForm}
-                className="btn-secondary"
+                className="btn-secondary w-full sm:w-auto min-h-[48px]"
                 disabled={submitting}
               >
                 Cancelar
@@ -611,84 +739,160 @@ const ProductForm = () => {
         </div>
 
         {filteredProducts.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Producto
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    SKU
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Precio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {product.nombre}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {product.categoria}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.sku}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span
-                          className={`text-sm font-medium ${
-                            (product.cantidadActual || 0) <=
-                            (product.cantidadMinima || 5)
-                              ? 'text-red-600'
-                              : 'text-green-600'
-                          }`}
-                        >
-                          {product.cantidadActual || 0}
-                        </span>
-                        <span className="text-xs text-gray-500 ml-1">
-                          / {product.cantidadMinima || 5}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(product.precioVenta || 0)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Vista de tabla para desktop */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Producto
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      SKU
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Precio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acciones
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.nombre}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {product.categoria}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {product.sku}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span
+                            className={`text-sm font-medium ${
+                              (product.cantidadActual || 0) <=
+                              (product.cantidadMinima || 5)
+                                ? 'text-red-600'
+                                : 'text-green-600'
+                            }`}
+                          >
+                            {product.cantidadActual || 0}
+                          </span>
+                          <span className="text-xs text-gray-500 ml-1">
+                            / {product.cantidadMinima || 5}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(product.precioVenta || 0)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleEdit(product)}
+                            className="text-blue-600 hover:text-blue-900 p-1"
+                            title="Editar producto"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(product)}
+                            className="text-red-600 hover:text-red-900 p-1"
+                            title="Eliminar producto"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Vista de cards para móvil */}
+            <div className="md:hidden space-y-4 p-4">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                        {product.nombre}
+                      </h3>
+                      <p className="text-sm text-gray-500">{product.categoria}</p>
+                    </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                        title="Editar producto"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product)}
+                        className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-50 transition-colors"
+                        title="Eliminar producto"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 font-medium">SKU</p>
+                      <p className="text-gray-900">{product.sku}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 font-medium">Precio</p>
+                      <p className="text-gray-900">{formatCurrency(product.precioVenta || 0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 font-medium">Stock Actual</p>
+                      <p
+                        className={`font-semibold ${
+                          (product.cantidadActual || 0) <= (product.cantidadMinima || 5)
+                            ? 'text-red-600'
+                            : 'text-green-600'
+                        }`}
+                      >
+                        {product.cantidadActual || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 font-medium">Stock Mínimo</p>
+                      <p className="text-gray-900">{product.cantidadMinima || 5}</p>
+                    </div>
+                  </div>
+
+                  {(product.cantidadActual || 0) <= (product.cantidadMinima || 5) && (
+                    <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-red-800 text-xs font-medium flex items-center">
+                        <AlertTriangle className="w-4 h-4 mr-1" />
+                        Stock bajo - Requiere reposición
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="text-center py-12">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -708,6 +912,20 @@ const ProductForm = () => {
           </div>
         )}
       </div>
+
+      {/* Diálogo de confirmación */}
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        onClose={closeConfirm}
+        onConfirm={handleConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        type={confirmState.type}
+        details={confirmState.details}
+        loading={confirmState.loading}
+      />
     </div>
   );
 };

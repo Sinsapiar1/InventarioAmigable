@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   collection, 
@@ -260,24 +260,24 @@ const Dashboard = () => {
   };
 
   // Refrescar datos manualmente
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadDashboardData();
     setRefreshing(false);
-  };
+  }, [loadDashboardData]);
 
-  // Formatear números a moneda
-  const formatCurrency = (amount) => {
+  // Formatear números a moneda (memoizado)
+  const formatCurrency = useCallback((amount) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
+  }, []);
 
-  // Formatear fecha relativa
-  const formatRelativeDate = (dateString) => {
+  // Formatear fecha relativa (memoizado)
+  const formatRelativeDate = useCallback((dateString) => {
     try {
       const date = new Date(dateString);
       const now = new Date();
@@ -296,7 +296,22 @@ const Dashboard = () => {
     } catch {
       return 'Fecha inválida';
     }
-  };
+  }, []);
+
+  // Productos con stock bajo memoizados
+  const lowStockProductsMemo = useMemo(() => {
+    return lowStockProducts.slice(0, 5);
+  }, [lowStockProducts]);
+
+  // Productos recientes memoizados
+  const recentProductsMemo = useMemo(() => {
+    return recentProducts.slice(0, 5);
+  }, [recentProducts]);
+
+  // Movimientos recientes memoizados
+  const recentMovementsMemo = useMemo(() => {
+    return recentMovements.slice(0, 5);
+  }, [recentMovements]);
 
   if (loading) {
     return (
@@ -343,7 +358,7 @@ const Dashboard = () => {
       )}
 
       {/* Estadísticas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Total Productos */}
         <div className="stat-card">
           <div className="flex items-center justify-between">
@@ -417,7 +432,7 @@ const Dashboard = () => {
       </div>
 
       {/* Contenido principal en dos columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Productos Recientes */}
         <div className="card">
           <div className="p-6 border-b border-gray-200">
@@ -429,9 +444,9 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="p-6">
-            {recentProducts.length > 0 ? (
+            {recentProductsMemo.length > 0 ? (
               <div className="space-y-4">
-                {recentProducts.map((producto) => (
+                {recentProductsMemo.map((producto) => (
                   <div key={producto.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
@@ -469,9 +484,9 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="p-6">
-            {lowStockProducts.length > 0 ? (
+            {lowStockProductsMemo.length > 0 ? (
               <div className="space-y-4">
-                {lowStockProducts.map((producto) => (
+                {lowStockProductsMemo.map((producto) => (
                   <div key={producto.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
@@ -508,38 +523,79 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="overflow-hidden">
-          {recentMovements.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Producto
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tipo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cantidad
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {recentMovements.map((movimiento) => (
-                    <tr key={movimiento.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+          {recentMovementsMemo.length > 0 ? (
+            <>
+              {/* Vista de tabla para desktop */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Producto
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tipo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cantidad
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recentMovementsMemo.map((movimiento) => (
+                      <tr key={movimiento.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {movimiento.productoNombre}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {movimiento.productoSKU}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            movimiento.tipoMovimiento === 'entrada' 
+                              ? 'bg-green-100 text-green-800' 
+                              : movimiento.tipoMovimiento === 'salida'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {movimiento.tipoMovimiento === 'entrada' && <ArrowUp className="w-3 h-3 mr-1" />}
+                            {movimiento.tipoMovimiento === 'salida' && <ArrowDown className="w-3 h-3 mr-1" />}
+                            {movimiento.subTipo}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {movimiento.tipoMovimiento === 'entrada' ? '+' : '-'}{movimiento.cantidad}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatRelativeDate(movimiento.fecha)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Vista de lista para móvil */}
+              <div className="md:hidden space-y-3 p-4">
+                {recentMovementsMemo.map((movimiento) => (
+                  <div
+                    key={movimiento.id}
+                    className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">
                           {movimiento.productoNombre}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {movimiento.productoSKU}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        </h4>
+                        <p className="text-xs text-gray-500">{movimiento.productoSKU}</p>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-2">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           movimiento.tipoMovimiento === 'entrada' 
                             ? 'bg-green-100 text-green-800' 
                             : movimiento.tipoMovimiento === 'salida'
@@ -550,18 +606,23 @@ const Dashboard = () => {
                           {movimiento.tipoMovimiento === 'salida' && <ArrowDown className="w-3 h-3 mr-1" />}
                           {movimiento.subTipo}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className={`font-medium ${
+                        movimiento.tipoMovimiento === 'entrada' ? 'text-green-600' : 'text-red-600'
+                      }`}>
                         {movimiento.tipoMovimiento === 'entrada' ? '+' : '-'}{movimiento.cantidad}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      </span>
+                      <span className="text-gray-500 text-xs">
                         {formatRelativeDate(movimiento.fecha)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+            
           ) : (
             <div className="text-center py-12">
               <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />

@@ -6,6 +6,7 @@ import ProductForm from './components/ProductForm';
 import MovementForm from './components/MovementForm';
 import InventoryTaking from './components/InventoryTaking';
 import LoadingSpinner from './components/LoadingSpinner';
+import NotificationContainer from './components/NotificationContainer';
 import {
   Package,
   BarChart3,
@@ -199,20 +200,21 @@ function AppContent() {
       </header>
 
       <div className="flex relative">
+        {/* Overlay para móvil */}
+        {isMobile && isMobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar de navegación */}
         <nav className={`
-          ${isMobile ? 'mobile-menu fixed inset-y-0 left-0 z-20 transform transition-transform duration-300 ease-in-out' : 'relative'}
+          ${isMobile ? 'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out' : 'relative'}
           ${isMobile && !isMobileMenuOpen ? '-translate-x-full' : 'translate-x-0'}
           ${isMobile ? 'w-80' : 'w-64'}
-          bg-white shadow-sm border-r border-gray-200 min-h-screen
+          bg-white shadow-lg border-r border-gray-200 min-h-screen
         `}>
-          {/* Overlay para móvil */}
-          {isMobile && isMobileMenuOpen && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-10"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-          )}
 
           <div className={`${isMobile ? 'relative z-20' : ''} h-full`}>
             {/* Header del sidebar en móvil */}
@@ -340,6 +342,9 @@ function AppContent() {
 
       {/* Padding bottom para la navegación móvil */}
       {isMobile && <div className="h-16"></div>}
+
+      {/* Contenedor de notificaciones */}
+      <NotificationContainer />
     </div>
   );
 }

@@ -6,6 +6,8 @@ const LoadingSpinner = ({
   text = 'Cargando...',
   overlay = false,
   className = '',
+  color = 'blue',
+  showDots = false,
 }) => {
   // Tamaños del spinner
   const sizeClasses = {
@@ -23,14 +25,24 @@ const LoadingSpinner = ({
     xl: 'text-xl',
   };
 
+  // Colores del spinner
+  const colorClasses = {
+    blue: 'text-blue-600',
+    green: 'text-green-600',
+    red: 'text-red-600',
+    gray: 'text-gray-600',
+    white: 'text-white',
+  };
+
   const SpinnerContent = () => (
     <div
       className={`flex flex-col items-center justify-center space-y-3 ${className}`}
     >
-      <Loader2 className={`${sizeClasses[size]} text-blue-600 animate-spin`} />
+      <Loader2 className={`${sizeClasses[size]} ${colorClasses[color]} animate-spin`} />
       {text && (
         <p className={`${textSizeClasses[size]} text-gray-600 font-medium`}>
           {text}
+          {showDots && <span className="animate-pulse">...</span>}
         </p>
       )}
     </div>

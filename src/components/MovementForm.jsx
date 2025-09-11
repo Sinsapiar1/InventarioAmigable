@@ -12,6 +12,7 @@ import {
   where,
   limit,
   onSnapshot,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
@@ -154,36 +155,96 @@ const MovementForm = () => {
   };
 
   const validateForm = () => {
+    // Validar producto seleccionado
     if (!formData.productoSKU) {
       setError('Debes seleccionar un producto');
       return false;
     }
 
+    const producto = products.find((p) => p.sku === formData.productoSKU);
+    if (!producto) {
+      setError('El producto seleccionado no existe');
+      return false;
+    }
+
+    // Validar tipo de movimiento
     if (!formData.subTipo) {
       setError('Selecciona el tipo específico de movimiento');
       return false;
     }
 
+    // Validar cantidad
     const cantidad = parseFloat(formData.cantidad);
-    if (!cantidad || cantidad <= 0) {
+    if (!formData.cantidad || isNaN(cantidad) || cantidad <= 0) {
       setError('La cantidad debe ser un número mayor a 0');
       return false;
     }
 
+    if (cantidad > 100000) {
+      setError('La cantidad no puede ser mayor a 100,000');
+      return false;
+    }
+
+    // Validar decimales (máximo 2)
+    if (formData.cantidad.toString().split('.')[1]?.length > 2) {
+      setError('La cantidad no puede tener más de 2 decimales');
+      return false;
+    }
+
+    // Validar razón
     if (!formData.razon.trim()) {
       setError('La razón del movimiento es obligatoria');
       return false;
     }
 
+    if (formData.razon.trim().length < 5) {
+      setError('La razón debe tener al menos 5 caracteres');
+      return false;
+    }
+
+    if (formData.razon.length > 200) {
+      setError('La razón no puede tener más de 200 caracteres');
+      return false;
+    }
+
+    // Validar número de documento si se proporciona
+    if (formData.numeroDocumento && formData.numeroDocumento.length > 50) {
+      setError('El número de documento no puede tener más de 50 caracteres');
+      return false;
+    }
+
+    // Validar observaciones si se proporcionan
+    if (formData.observaciones && formData.observaciones.length > 500) {
+      setError('Las observaciones no pueden tener más de 500 caracteres');
+      return false;
+    }
+
+    // Validar stock disponible para salidas
     if (formData.tipoMovimiento === 'salida') {
-      const producto = products.find((p) => p.sku === formData.productoSKU);
-      if (producto && (producto.cantidadActual || 0) < cantidad) {
+      const stockActual = producto.cantidadActual || 0;
+      
+      if (stockActual < cantidad) {
         setError(
-          `Stock insuficiente. Disponible: ${
-            producto.cantidadActual || 0
-          }, Solicitado: ${cantidad}`
+          `Stock insuficiente. Disponible: ${stockActual}, Solicitado: ${cantidad}`
         );
         return false;
+      }
+
+      // Advertir si el movimiento dejará el stock muy bajo
+      const stockFinal = stockActual - cantidad;
+      const stockMinimo = producto.cantidadMinima || 5;
+      
+      if (stockFinal < stockMinimo && stockFinal >= 0) {
+        const confirmarStockBajo = window.confirm(
+          `Advertencia: Este movimiento dejará el stock por debajo del mínimo.\n\n` +
+          `Stock final: ${stockFinal}\n` +
+          `Stock mínimo: ${stockMinimo}\n\n` +
+          `¿Deseas continuar?`
+        );
+        
+        if (!confirmarStockBajo) {
+          return false;
+        }
       }
     }
 
@@ -201,65 +262,80 @@ const MovementForm = () => {
     try {
       const cantidad = parseFloat(formData.cantidad);
 
-      const productoRef = doc(
-        db,
-        'usuarios',
-        currentUser.uid,
-        'almacenes',
-        'principal',
-        'productos',
-        formData.productoSKU
-      );
-      const productoDoc = await getDoc(productoRef);
+      // Usar transacción para garantizar consistencia
+      await runTransaction(db, async (transaction) => {
+        const productoRef = doc(
+          db,
+          'usuarios',
+          currentUser.uid,
+          'almacenes',
+          'principal',
+          'productos',
+          formData.productoSKU
+        );
 
-      if (!productoDoc.exists()) {
-        throw new Error('Producto no encontrado en la base de datos');
-      }
+        const productoDoc = await transaction.get(productoRef);
 
-      const producto = productoDoc.data();
-      const cantidadAnterior = producto.cantidadActual || 0;
-
-      let cantidadNueva = cantidadAnterior;
-      if (formData.tipoMovimiento === 'entrada') {
-        cantidadNueva += cantidad;
-      } else {
-        cantidadNueva -= cantidad;
-        if (cantidadNueva < 0) {
-          throw new Error('La operación resultaría en stock negativo');
+        if (!productoDoc.exists()) {
+          throw new Error('Producto no encontrado en la base de datos');
         }
-      }
 
-      const movimientoData = {
-        usuarioId: currentUser.uid,
-        almacenId: 'principal',
-        productoSKU: formData.productoSKU,
-        productoNombre: producto.nombre,
-        tipoMovimiento: formData.tipoMovimiento,
-        subTipo: formData.subTipo,
-        cantidad: cantidad,
-        cantidadAnterior,
-        cantidadNueva,
-        razon: formData.razon.trim(),
-        numeroDocumento: formData.numeroDocumento.trim() || null,
-        observaciones: formData.observaciones.trim() || null,
-        fecha: new Date().toISOString(),
-        creadoPor: currentUser.email,
-      };
+        const producto = productoDoc.data();
+        const cantidadAnterior = producto.cantidadActual || 0;
 
-      await Promise.all([
-        updateDoc(productoRef, {
+        let cantidadNueva = cantidadAnterior;
+        if (formData.tipoMovimiento === 'entrada') {
+          cantidadNueva += cantidad;
+        } else {
+          cantidadNueva -= cantidad;
+          if (cantidadNueva < 0) {
+            throw new Error('La operación resultaría en stock negativo');
+          }
+        }
+
+        // Actualizar producto
+        transaction.update(productoRef, {
           cantidadActual: cantidadNueva,
           fechaActualizacion: new Date().toISOString(),
-        }),
-        addDoc(collection(db, 'movimientos'), movimientoData),
-      ]);
+        });
 
-      const tipoLabel =
-        formData.tipoMovimiento === 'entrada' ? 'Entrada' : 'Salida';
+        // Crear movimiento
+        const movimientoData = {
+          usuarioId: currentUser.uid,
+          almacenId: 'principal',
+          productoSKU: formData.productoSKU,
+          productoNombre: producto.nombre,
+          tipoMovimiento: formData.tipoMovimiento,
+          subTipo: formData.subTipo,
+          cantidad: cantidad,
+          cantidadAnterior,
+          cantidadNueva,
+          razon: formData.razon.trim(),
+          numeroDocumento: formData.numeroDocumento.trim() || null,
+          observaciones: formData.observaciones.trim() || null,
+          fecha: new Date().toISOString(),
+          creadoPor: currentUser.email,
+        };
+
+        const movimientoRef = doc(collection(db, 'movimientos'));
+        transaction.set(movimientoRef, movimientoData);
+      });
+
+      const tipoLabel = formData.tipoMovimiento === 'entrada' ? 'Entrada' : 'Salida';
+      const producto = products.find(p => p.sku === formData.productoSKU);
+      
       setSuccess(
         `${tipoLabel} registrada exitosamente: ${cantidad} unidades de ${producto.nombre}`
       );
 
+      // Mostrar notificación global
+      if (window.showSuccess) {
+        window.showSuccess(
+          `${tipoLabel} registrada: ${cantidad} unidades de ${producto.nombre}`
+        );
+      }
+
+      // Resetear formulario
       setFormData({
         productoSKU: '',
         tipoMovimiento: 'entrada',
@@ -273,7 +349,24 @@ const MovementForm = () => {
       await loadData();
     } catch (error) {
       console.error('Error registrando movimiento:', error);
-      setError(error.message || 'Error al registrar el movimiento');
+      
+      // Determinar mensaje de error específico
+      let errorMessage = 'Error al registrar el movimiento';
+      
+      if (error.code === 'permission-denied') {
+        errorMessage = 'No tienes permisos para realizar esta acción';
+      } else if (error.code === 'network-request-failed') {
+        errorMessage = 'Error de conexión. Verifica tu internet';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      
+      // Mostrar notificación global
+      if (window.showError) {
+        window.showError(errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }
