@@ -95,9 +95,28 @@ function AppContent() {
   // Función para manejar logout
   const handleLogout = async () => {
     try {
+      // Cerrar todos los menús primero
+      setShowUserMenu(false);
+      setShowNotifications(false);
+      setShowSettings(false);
+      
+      // Mostrar feedback inmediato
+      if (window.showInfo) {
+        window.showInfo('Cerrando sesión...');
+      }
+      
       await logout();
+      
+      // Limpiar estados locales
+      setCurrentView('dashboard');
+      setNotifications([]);
+      
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
+      
+      if (window.showError) {
+        window.showError('Error al cerrar sesión. Intenta nuevamente.');
+      }
     }
   };
 
@@ -271,7 +290,7 @@ function AppContent() {
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center space-x-2 rounded-lg transition-colors font-medium"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Cerrar Sesión</span>
