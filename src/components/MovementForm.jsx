@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 
 const MovementForm = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [products, setProducts] = useState([]);
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
