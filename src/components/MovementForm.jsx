@@ -387,8 +387,11 @@ const MovementForm = () => {
       // Redondear a 2 decimales para evitar problemas de precisión
       const cantidadRedondeada = Math.round(cantidad * 100) / 100;
 
-      // Usar transacción para garantizar consistencia
+      // Usar transacción con TODOS los reads ANTES de los writes
       await runTransaction(db, async (transaction) => {
+        // ===== FASE 1: TODOS LOS READS PRIMERO =====
+        
+        // Read 1: Producto origen
         const productoRef = doc(
           db,
           'usuarios',
@@ -398,13 +401,28 @@ const MovementForm = () => {
           'productos',
           formData.productoSKU
         );
-
         const productoDoc = await transaction.get(productoRef);
 
         if (!productoDoc.exists()) {
           throw new Error('Producto no encontrado en la base de datos');
         }
 
+        // Read 2 y 3: Para traspasos externos, leer datos del destino
+        let almacenDestinoDoc = null;
+        let usuarioDestinoDoc = null;
+        
+        if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'externo') {
+          const [usuarioDestinoId, almacenDestinoId] = formData.almacenDestino.split(':');
+          
+          const almacenDestinoRef = doc(db, 'usuarios', usuarioDestinoId, 'almacenes', almacenDestinoId);
+          almacenDestinoDoc = await transaction.get(almacenDestinoRef);
+          
+          const usuarioDestinoRef = doc(db, 'usuarios', usuarioDestinoId);
+          usuarioDestinoDoc = await transaction.get(usuarioDestinoRef);
+        }
+
+        // ===== FASE 2: PROCESAR DATOS =====
+        
         const producto = productoDoc.data();
         const cantidadAnterior = producto.cantidadActual || 0;
 
@@ -418,13 +436,15 @@ const MovementForm = () => {
           }
         }
 
-        // Actualizar producto
+        // ===== FASE 3: TODOS LOS WRITES =====
+        
+        // Write 1: Actualizar producto
         transaction.update(productoRef, {
           cantidadActual: cantidadNueva,
           fechaActualizacion: new Date().toISOString(),
         });
 
-        // Crear movimiento
+        // Write 2: Crear movimiento
         const movimientoData = {
           usuarioId: currentUser.uid,
           almacenId: 'principal',
@@ -445,23 +465,15 @@ const MovementForm = () => {
         const movimientoRef = doc(collection(db, 'movimientos'));
         transaction.set(movimientoRef, movimientoData);
 
-        // Si es traspaso externo, crear solicitud en lugar de ejecutar directamente
+        // Write 3 y 4: Para traspasos externos, crear solicitud y notificación
         if (formData.subTipo === 'Traspaso a otro almacén' && formData.tipoTraspaso === 'externo') {
           const [usuarioDestinoId, almacenDestinoId] = formData.almacenDestino.split(':');
-          
-          // Obtener datos del almacén destino
-          const almacenDestinoRef = doc(db, 'usuarios', usuarioDestinoId, 'almacenes', almacenDestinoId);
-          const almacenDestinoDoc = await transaction.get(almacenDestinoRef);
-          
-          // Obtener datos del usuario destino
-          const usuarioDestinoRef = doc(db, 'usuarios', usuarioDestinoId);
-          const usuarioDestinoDoc = await transaction.get(usuarioDestinoRef);
 
-          if (almacenDestinoDoc.exists() && usuarioDestinoDoc.exists()) {
+          if (almacenDestinoDoc && almacenDestinoDoc.exists() && usuarioDestinoDoc && usuarioDestinoDoc.exists()) {
             const almacenDestino = almacenDestinoDoc.data();
             const usuarioDestino = usuarioDestinoDoc.data();
 
-            // Crear solicitud de traspaso
+            // Write 3: Crear solicitud de traspaso
             const solicitudData = {
               usuarioOrigenId: currentUser.uid,
               usuarioOrigenNombre: userProfile?.nombreCompleto || currentUser.displayName,
@@ -486,13 +498,13 @@ const MovementForm = () => {
               
               estado: 'pendiente',
               fechaCreacion: new Date().toISOString(),
-              movimientoOrigenId: movimientoRef.id, // Referencia al movimiento de salida
+              movimientoOrigenId: movimientoRef.id,
             };
 
             const solicitudRef = doc(collection(db, 'solicitudes-traspaso'));
             transaction.set(solicitudRef, solicitudData);
 
-            // Crear notificación para el usuario destino
+            // Write 4: Crear notificación
             const notificacionData = {
               usuarioId: usuarioDestinoId,
               tipo: 'solicitud_traspaso',
