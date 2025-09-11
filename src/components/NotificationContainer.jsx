@@ -12,7 +12,7 @@ const NotificationContainer = () => {
 
   // Función global para agregar notificaciones
   window.addNotification = (notification) => {
-    const id = Date.now() + Math.random();
+    const id = Date.now() + Math.random() * 10000; // Más único
     const newNotification = {
       id,
       type: 'info',
