@@ -49,51 +49,6 @@ const Dashboard = () => {
     loadDashboardData();
   }, [currentUser]);
 
-  // Configurar listeners en tiempo real
-  const setupRealtimeListeners = () => {
-    if (!currentUser) return;
-
-    // Listener para productos
-    const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', 'principal', 'productos');
-    const unsubscribeProducts = onSnapshot(productosRef, 
-      (snapshot) => {
-        console.log('Productos actualizados en tiempo real');
-        loadStats();
-        loadRecentProducts();
-        loadLowStockProducts();
-      },
-      (error) => {
-        console.error('Error en listener de productos:', error);
-      }
-    );
-
-    // Listener para movimientos
-    const movimientosRef = collection(db, 'movimientos');
-    const movimientosQuery = query(
-      movimientosRef,
-      where('usuarioId', '==', currentUser.uid),
-      orderBy('fecha', 'desc'),
-      limit(10)
-    );
-    
-    const unsubscribeMovements = onSnapshot(movimientosQuery,
-      (snapshot) => {
-        console.log('Movimientos actualizados en tiempo real');
-        loadStats();
-        loadRecentMovements();
-      },
-      (error) => {
-        console.error('Error en listener de movimientos:', error);
-      }
-    );
-
-    // Cleanup listeners
-    return () => {
-      unsubscribeProducts();
-      unsubscribeMovements();
-    };
-  };
-
   // Cargar todos los datos del dashboard
   const loadDashboardData = async () => {
     try {
@@ -154,29 +109,35 @@ const Dashboard = () => {
         }
       });
 
-      // Obtener movimientos de hoy
+      // Obtener todos los movimientos del usuario y filtrar en el cliente
       const movimientosRef = collection(db, 'movimientos');
-      const movimientosHoyQuery = query(
+      const movimientosQuery = query(
         movimientosRef,
-        where('usuarioId', '==', currentUser.uid),
-        where('fecha', '>=', inicioHoy.toISOString())
+        where('usuarioId', '==', currentUser.uid)
       );
-      const movimientosHoySnapshot = await getDocs(movimientosHoyQuery);
+      const movimientosSnapshot = await getDocs(movimientosQuery);
 
-      // Obtener movimientos de la semana
-      const movimientosSemanaQuery = query(
-        movimientosRef,
-        where('usuarioId', '==', currentUser.uid),
-        where('fecha', '>=', inicioSemana.toISOString())
-      );
-      const movimientosSemanaSnapshot = await getDocs(movimientosSemanaQuery);
+      let movimientosHoy = 0;
+      let movimientosSemana = 0;
+
+      movimientosSnapshot.forEach((doc) => {
+        const data = doc.data();
+        const fechaMovimiento = new Date(data.fecha);
+        
+        if (fechaMovimiento >= inicioHoy) {
+          movimientosHoy++;
+        }
+        if (fechaMovimiento >= inicioSemana) {
+          movimientosSemana++;
+        }
+      });
 
       setStats({
         totalProductos,
         productosConStockBajo: stockBajo,
         valorTotalInventario: valorTotal,
-        movimientosHoy: movimientosHoySnapshot.size,
-        movimientosSemana: movimientosSemanaSnapshot.size,
+        movimientosHoy,
+        movimientosSemana,
         productosCreados
       });
 
@@ -214,8 +175,7 @@ const Dashboard = () => {
       const movimientosQuery = query(
         movimientosRef,
         where('usuarioId', '==', currentUser.uid),
-        orderBy('fecha', 'desc'),
-        limit(5)
+        limit(10)
       );
       const snapshot = await getDocs(movimientosQuery);
       
@@ -227,9 +187,13 @@ const Dashboard = () => {
         });
       });
       
-      setRecentMovements(movimientos);
+      // Ordenar en el cliente y tomar solo 5
+      movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      setRecentMovements(movimientos.slice(0, 5));
     } catch (error) {
       console.error('Error cargando movimientos recientes:', error);
+      // Si falla, establecer array vacío
+      setRecentMovements([]);
     }
   };
 

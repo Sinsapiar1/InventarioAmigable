@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import SimpleDashboard from './components/SimpleDashboard';
 import ProductForm from './components/ProductForm';
 import MovementForm from './components/MovementForm';
 import InventoryTaking from './components/InventoryTaking';
 import LoadingSpinner from './components/LoadingSpinner';
 import NotificationContainer from './components/NotificationContainer';
+import TestComponent from './components/TestComponent';
+import DebugInfo from './components/DebugInfo';
 import {
   Package,
   BarChart3,
@@ -86,7 +89,12 @@ function AppContent() {
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard />;
+        return (
+          <div>
+            <TestComponent />
+            <SimpleDashboard />
+          </div>
+        );
       case 'products':
         return <ProductForm />;
       case 'movements':
@@ -94,7 +102,12 @@ function AppContent() {
       case 'inventory':
         return <InventoryTaking />;
       default:
-        return <Dashboard />;
+        return (
+          <div>
+            <TestComponent />
+            <SimpleDashboard />
+          </div>
+        );
     }
   };
 
@@ -345,6 +358,9 @@ function AppContent() {
 
       {/* Contenedor de notificaciones */}
       <NotificationContainer />
+      
+      {/* Info de debug */}
+      <DebugInfo />
     </div>
   );
 }
