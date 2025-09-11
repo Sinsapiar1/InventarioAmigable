@@ -27,6 +27,7 @@ import {
 const TransferRequestManager = ({ isOpen, onClose }) => {
   const { currentUser, userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [processingRequest, setProcessingRequest] = useState(null);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [completedTransfers, setCompletedTransfers] = useState([]);
@@ -123,8 +124,9 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
 
   const respondToRequest = async (requestId, action) => {
     try {
-      // Prevenir doble clic
-      setLoading(true);
+      // Prevenir doble clic específico para esta solicitud
+      setProcessingRequest(requestId);
+      console.log('🚀 Iniciando procesamiento de solicitud:', requestId, action);
       const requestRef = doc(db, 'solicitudes-traspaso', requestId);
       const requestDoc = await getDoc(requestRef);
       
@@ -314,7 +316,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
         window.showError('Error al procesar la solicitud: ' + error.message);
       }
     } finally {
-      setLoading(false);
+      setProcessingRequest(null);
     }
   };
 
@@ -759,10 +761,10 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                           <div className="flex flex-col gap-2 ml-4">
                             <button
                               onClick={() => respondToRequest(request.id, 'approve')}
-                              disabled={loading}
+                              disabled={processingRequest === request.id}
                               className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                             >
-                              {loading ? (
+                              {processingRequest === request.id ? (
                                 <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
                               ) : (
                                 <Check className="w-3 h-3" />
@@ -771,10 +773,10 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                             </button>
                             <button
                               onClick={() => respondToRequest(request.id, 'reject')}
-                              disabled={loading}
+                              disabled={processingRequest === request.id}
                               className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                             >
-                              {loading ? (
+                              {processingRequest === request.id ? (
                                 <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
                               ) : (
                                 <X className="w-3 h-3" />
