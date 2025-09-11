@@ -718,17 +718,23 @@ const ProductForm = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Cantidad Actual
                 </label>
-                <input
-                  type="number"
-                  name="cantidadActual"
-                  value={formData.cantidadActual}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  min="0"
-                  step="1"
-                  placeholder="0"
-                  disabled={submitting}
-                />
+                  <input
+                    type="number"
+                    name="cantidadActual"
+                    value={formData.cantidadActual}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    disabled={submitting}
+                    onKeyDown={(e) => {
+                      // Prevenir decimales con punto o coma
+                      if (e.key === '.' || e.key === ',') {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
               </div>
 
               {/* Cantidad Mínima */}
@@ -746,6 +752,12 @@ const ProductForm = () => {
                   step="1"
                   placeholder="5"
                   disabled={submitting}
+                  onKeyDown={(e) => {
+                    // Prevenir decimales con punto o coma
+                    if (e.key === '.' || e.key === ',') {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </div>
 

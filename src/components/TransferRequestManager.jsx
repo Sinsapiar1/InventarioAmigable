@@ -299,47 +299,94 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
   };
 
   const generateTransferPDF = (transferData) => {
-    // Generar PDF simple (por ahora texto)
-    const pdfContent = `
-DOCUMENTO DE TRASPASO DE MERCADERÍA
-=====================================
+    // Crear HTML para PDF
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Documento de Traspaso</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .section { margin-bottom: 15px; }
+        .label { font-weight: bold; color: #333; }
+        .value { color: #666; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .box { border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
+        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #888; }
+        .product-box { background: #f8f9fa; border: 2px solid #007bff; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>DOCUMENTO DE TRASPASO DE MERCADERÍA</h1>
+        <p>Sistema de Inventario Pro</p>
+    </div>
 
-ORIGEN:
-Usuario: ${transferData.usuarioOrigenNombre}
-Email: ${transferData.usuarioOrigenEmail}
-Almacén: ${transferData.almacenOrigenNombre}
+    <div class="grid">
+        <div class="box">
+            <h3>📦 ORIGEN</h3>
+            <div class="section">
+                <span class="label">Usuario:</span> <span class="value">${transferData.usuarioOrigenNombre || 'Usuario'}</span><br>
+                <span class="label">Email:</span> <span class="value">${transferData.usuarioOrigenEmail || ''}</span><br>
+                <span class="label">Almacén:</span> <span class="value">${transferData.almacenOrigenNombre || 'Almacén'}</span>
+            </div>
+        </div>
 
-DESTINO:
-Usuario: ${transferData.usuarioDestinoNombre}
-Email: ${transferData.usuarioDestinoEmail}
-Almacén: ${transferData.almacenDestinoNombre}
+        <div class="box">
+            <h3>📍 DESTINO</h3>
+            <div class="section">
+                <span class="label">Usuario:</span> <span class="value">${transferData.usuarioDestinoNombre || 'Usuario'}</span><br>
+                <span class="label">Email:</span> <span class="value">${transferData.usuarioDestinoEmail || ''}</span><br>
+                <span class="label">Almacén:</span> <span class="value">${transferData.almacenDestinoNombre || 'Almacén'}</span>
+            </div>
+        </div>
+    </div>
 
-PRODUCTO:
-SKU: ${transferData.productoSKU}
-Nombre: ${transferData.productoNombre}
-Cantidad: ${transferData.cantidad}
+    <div class="box product-box">
+        <h3>📋 PRODUCTO TRANSFERIDO</h3>
+        <div class="section">
+            <span class="label">SKU:</span> <span class="value">${transferData.productoSKU || ''}</span><br>
+            <span class="label">Nombre:</span> <span class="value">${transferData.productoNombre || ''}</span><br>
+            <span class="label">Categoría:</span> <span class="value">${transferData.productoCategoria || 'General'}</span><br>
+            <span class="label">Cantidad:</span> <span class="value" style="font-size: 18px; font-weight: bold; color: #007bff;">${transferData.cantidad || 0} unidades</span>
+        </div>
+    </div>
 
-DETALLES:
-Fecha Solicitud: ${new Date(transferData.fechaCreacion).toLocaleDateString('es-ES')}
-Fecha Aprobación: ${new Date().toLocaleDateString('es-ES')}
-Razón: ${transferData.razon}
+    <div class="box">
+        <h3>📝 DETALLES DEL TRASPASO</h3>
+        <div class="section">
+            <span class="label">Fecha Solicitud:</span> <span class="value">${new Date(transferData.fechaCreacion).toLocaleDateString('es-ES')}</span><br>
+            <span class="label">Fecha Aprobación:</span> <span class="value">${new Date().toLocaleDateString('es-ES')}</span><br>
+            <span class="label">Razón:</span> <span class="value">${transferData.razon || 'Traspaso de mercadería'}</span><br>
+            <span class="label">Observaciones:</span> <span class="value">${transferData.observaciones || 'Ninguna'}</span><br>
+            <span class="label">Número de Documento:</span> <span class="value">TRX-${transferData.id?.slice(-8) || 'XXXXXXXX'}</span>
+        </div>
+    </div>
 
-Documento generado automáticamente por Sistema de Inventario Pro
+    <div class="footer">
+        <p><strong>Documento generado automáticamente</strong></p>
+        <p>Sistema de Inventario Pro - ${new Date().toLocaleString('es-ES')}</p>
+        <p>Este documento certifica la transferencia de mercadería entre usuarios del sistema</p>
+    </div>
+</body>
+</html>
     `;
 
-    // Crear y descargar archivo
-    const blob = new Blob([pdfContent], { type: 'text/plain' });
+    // Crear blob HTML y convertir a PDF-like
+    const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `traspaso_${transferData.productoSKU}_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.download = `TRASPASO_${transferData.productoSKU}_${new Date().toISOString().slice(0, 10)}.html`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
 
-    if (window.showInfo) {
-      window.showInfo('Documento de traspaso descargado');
+    if (window.showSuccess) {
+      window.showSuccess('📄 Documento de traspaso descargado (abrir en navegador para imprimir como PDF)');
     }
   };
 
