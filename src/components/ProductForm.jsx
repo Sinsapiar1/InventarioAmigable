@@ -80,16 +80,19 @@ const ProductForm = () => {
     loadProducts();
   }, [currentUser]);
 
-  // Recargar productos cada 5 segundos para ver cambios de traspasos
+  // Recargar productos cada 15 segundos (menos parpadeo)
   useEffect(() => {
     if (!currentUser) return;
 
     const interval = setInterval(() => {
-      loadProducts();
-    }, 5000); // Cada 5 segundos
+      // Solo recargar si no hay formularios abiertos (menos molesto)
+      if (!showForm && !submitting) {
+        loadProducts();
+      }
+    }, 15000); // Cada 15 segundos
 
     return () => clearInterval(interval);
-  }, [currentUser]);
+  }, [currentUser, showForm, submitting]);
 
   // Cargar productos desde Firestore
   const loadProducts = async () => {

@@ -52,6 +52,18 @@ const Dashboard = () => {
     loadDashboardData();
   }, [currentUser]);
 
+  // Auto-refresh del dashboard cada 30 segundos (menos molesto)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const interval = setInterval(() => {
+      // Solo recargar estadísticas, no todo
+      loadStats();
+    }, 30000); // Cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
   // Cargar todos los datos del dashboard
   const loadDashboardData = async () => {
     try {
