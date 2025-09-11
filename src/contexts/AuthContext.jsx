@@ -210,9 +210,34 @@ export function AuthProvider({ children }) {
       if (userDoc.exists()) {
         setUserProfile(userDoc.data());
         return userDoc.data();
+      } else {
+        // Si no existe el perfil, crearlo con datos básicos
+        const basicProfile = {
+          email: currentUser?.email || '',
+          nombreCompleto: currentUser?.displayName || 'Usuario',
+          rol: 'administrador',
+          fechaCreacion: new Date().toISOString(),
+          fechaUltimoAcceso: new Date().toISOString(),
+          configuracion: {
+            tema: 'light',
+            idioma: 'es',
+            notificaciones: true,
+          },
+          estado: 'activo',
+        };
+        
+        await setDoc(doc(db, 'usuarios', uid), basicProfile);
+        setUserProfile(basicProfile);
+        return basicProfile;
       }
     } catch (error) {
       console.error('Error cargando perfil:', error);
+      // Establecer perfil básico en caso de error
+      const fallbackProfile = {
+        nombreCompleto: currentUser?.displayName || 'Usuario',
+        email: currentUser?.email || '',
+      };
+      setUserProfile(fallbackProfile);
     }
   }
 

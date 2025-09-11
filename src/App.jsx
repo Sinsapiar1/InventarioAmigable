@@ -9,8 +9,6 @@ import MovementForm from './components/MovementForm';
 import InventoryTaking from './components/InventoryTaking';
 import LoadingSpinner from './components/LoadingSpinner';
 import NotificationContainer from './components/NotificationContainer';
-import TestComponent from './components/TestComponent';
-import DebugInfo from './components/DebugInfo';
 import {
   Package,
   BarChart3,
@@ -90,12 +88,7 @@ function AppContent() {
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
-        return (
-          <div>
-            <TestComponent />
-            <SimpleDashboard />
-          </div>
-        );
+        return <SimpleDashboard />;
       case 'products':
         return <SimpleProductForm />;
       case 'movements':
@@ -103,12 +96,7 @@ function AppContent() {
       case 'inventory':
         return <InventoryTaking />;
       default:
-        return (
-          <div>
-            <TestComponent />
-            <SimpleDashboard />
-          </div>
-        );
+        return <SimpleDashboard />;
     }
   };
 
@@ -359,9 +347,6 @@ function AppContent() {
 
       {/* Contenedor de notificaciones */}
       <NotificationContainer />
-      
-      {/* Info de debug */}
-      <DebugInfo />
     </div>
   );
 }
