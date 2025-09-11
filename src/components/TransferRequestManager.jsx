@@ -7,7 +7,8 @@ import {
   getDocs, 
   updateDoc,
   runTransaction,
-  getDoc
+  getDoc,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
@@ -147,104 +148,99 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
       const requestData = requestDoc.data();
 
       if (action === 'approve') {
-        // APROBAR: Crear producto en destino
-        await runTransaction(db, async (transaction) => {
-          // Read 1: Leer solicitud
-          const requestDocRead = await transaction.get(requestRef);
-          const data = requestDocRead.data();
+        // APROBAR: Usar operaciones separadas (más seguro que transacción compleja)
+        console.log('🚀 Iniciando aprobación de solicitud:', requestId);
+        
+        // 1. Actualizar estado de solicitud
+        await updateDoc(requestRef, {
+          estado: 'aprobada',
+          fechaAprobacion: new Date().toISOString(),
+          aprobadoPor: currentUser.email || ''
+        });
+        
+        console.log('✅ Solicitud marcada como aprobada');
 
-          // Read 2: Verificar producto en almacén destino
-          console.log('🔍 Buscando producto en destino:', {
-            usuarioId: currentUser.uid,
-            almacenId: data.almacenDestinoId,
-            productoSKU: data.productoSKU
+        // 2. Crear o actualizar producto en destino
+        const productoDestinoRef = doc(
+          db,
+          'usuarios',
+          currentUser.uid,
+          'almacenes',
+          requestData.almacenDestinoId,
+          'productos',
+          requestData.productoSKU
+        );
+
+        console.log('🔍 Verificando producto en destino:', {
+          path: `usuarios/${currentUser.uid}/almacenes/${requestData.almacenDestinoId}/productos/${requestData.productoSKU}`
+        });
+
+        const productoDestinoDoc = await getDoc(productoDestinoRef);
+        
+        if (productoDestinoDoc.exists()) {
+          // SUMAR al producto existente
+          const productoExistente = productoDestinoDoc.data();
+          const cantidadAnterior = productoExistente.cantidadActual || 0;
+          const cantidadNueva = cantidadAnterior + requestData.cantidad;
+
+          console.log('✅ Sumando a producto existente:', {
+            cantidadAnterior,
+            cantidadASumar: requestData.cantidad,
+            cantidadNueva
+          });
+
+          await updateDoc(productoDestinoRef, {
+            cantidadActual: cantidadNueva,
+            fechaActualizacion: new Date().toISOString()
           });
           
-          const productoDestinoRef = doc(
-            db,
-            'usuarios',
-            currentUser.uid,
-            'almacenes',
-            data.almacenDestinoId,
-            'productos',
-            data.productoSKU
-          );
-          const productoDestinoDoc = await transaction.get(productoDestinoRef);
-          
-          console.log('📦 Producto existe en destino:', productoDestinoDoc.exists());
+          console.log('💾 Producto actualizado en destino');
+        } else {
+          // CREAR producto nuevo
+          console.log('🆕 Creando producto nuevo en destino');
 
-          // Write 1: Actualizar estado de solicitud
-          transaction.update(requestRef, {
-            estado: 'aprobada',
-            fechaAprobacion: new Date().toISOString(),
-            aprobadoPor: currentUser.email || ''
-          });
-
-          // Write 2: Crear o actualizar producto en destino
-          if (productoDestinoDoc.exists()) {
-            // SUMAR al producto existente
-            const productoExistente = productoDestinoDoc.data();
-            const cantidadAnterior = productoExistente.cantidadActual || 0;
-            const cantidadNueva = cantidadAnterior + data.cantidad;
-
-            console.log('✅ Sumando a producto existente:', {
-              cantidadAnterior,
-              cantidadASumar: data.cantidad,
-              cantidadNueva
-            });
-
-            transaction.update(productoDestinoRef, {
-              cantidadActual: cantidadNueva,
-              fechaActualizacion: new Date().toISOString()
-            });
-          } else {
-            // CREAR producto nuevo
-            console.log('🆕 Creando producto nuevo:', {
-              sku: data.productoSKU,
-              nombre: data.productoNombre,
-              cantidad: data.cantidad
-            });
-
-            const nuevoProducto = {
-              sku: data.productoSKU,
-              nombre: data.productoNombre,
-              categoria: data.productoCategoria || 'Traspasos',
-              cantidadActual: data.cantidad,
-              cantidadMinima: 5,
-              precioVenta: 0,
-              precioCompra: 0,
-              proveedor: `Traspaso de ${data.usuarioOrigenNombre || 'Usuario'}`,
-              ubicacionFisica: '',
-              descripcion: 'Producto recibido por traspaso externo',
-              fechaCreacion: new Date().toISOString(),
-              fechaActualizacion: new Date().toISOString(),
-            };
-
-            transaction.set(productoDestinoRef, nuevoProducto);
-          }
-
-          // Write 3: Registrar movimiento de entrada
-          const movimientoEntrada = {
-            usuarioId: currentUser.uid,
-            almacenId: data.almacenDestinoId,
-            productoSKU: data.productoSKU,
-            productoNombre: data.productoNombre,
-            tipoMovimiento: 'entrada',
-            subTipo: 'Traspaso externo aprobado',
-            cantidad: data.cantidad,
-            cantidadAnterior: productoDestinoDoc.exists() ? (productoDestinoDoc.data().cantidadActual || 0) : 0,
-            cantidadNueva: (productoDestinoDoc.exists() ? (productoDestinoDoc.data().cantidadActual || 0) : 0) + data.cantidad,
-            razon: `Traspaso aprobado desde ${data.usuarioOrigenNombre}`,
-            numeroDocumento: `TRX-${requestId.slice(-8)}`,
-            observaciones: `Traspaso externo de: ${data.usuarioOrigenNombre}`,
-            fecha: new Date().toISOString(),
-            creadoPor: currentUser.email || '',
-            traspasoId: requestId
+          const nuevoProducto = {
+            sku: requestData.productoSKU,
+            nombre: requestData.productoNombre,
+            categoria: requestData.productoCategoria || 'Traspasos',
+            cantidadActual: requestData.cantidad,
+            cantidadMinima: 5,
+            precioVenta: 0,
+            precioCompra: 0,
+            proveedor: `Traspaso de ${requestData.usuarioOrigenNombre || 'Usuario'}`,
+            ubicacionFisica: '',
+            descripcion: 'Producto recibido por traspaso externo',
+            fechaCreacion: new Date().toISOString(),
+            fechaActualizacion: new Date().toISOString(),
           };
 
-          const movimientoRef = doc(collection(db, 'movimientos'));
-          transaction.set(movimientoRef, movimientoEntrada);
-        });
+          await setDoc(productoDestinoRef, nuevoProducto);
+          console.log('💾 Producto nuevo creado en destino');
+        }
+
+        // 3. Registrar movimiento de entrada
+        const movimientoEntrada = {
+          usuarioId: currentUser.uid,
+          almacenId: requestData.almacenDestinoId,
+          productoSKU: requestData.productoSKU,
+          productoNombre: requestData.productoNombre,
+          tipoMovimiento: 'entrada',
+          subTipo: 'Traspaso externo aprobado',
+          cantidad: requestData.cantidad,
+          cantidadAnterior: productoDestinoDoc.exists() ? (productoDestinoDoc.data().cantidadActual || 0) : 0,
+          cantidadNueva: productoDestinoDoc.exists() ? 
+            (productoDestinoDoc.data().cantidadActual || 0) + requestData.cantidad : 
+            requestData.cantidad,
+          razon: `Traspaso aprobado desde ${requestData.usuarioOrigenNombre}`,
+          numeroDocumento: `TRX-${requestId.slice(-8)}`,
+          observaciones: `Traspaso externo de: ${requestData.usuarioOrigenNombre}`,
+          fecha: new Date().toISOString(),
+          creadoPor: currentUser.email || '',
+          traspasoId: requestId
+        };
+
+        await addDoc(collection(db, 'movimientos'), movimientoEntrada);
+        console.log('📝 Movimiento de entrada registrado');
 
         // Generar PDF
         generateTransferPDF(requestData);
