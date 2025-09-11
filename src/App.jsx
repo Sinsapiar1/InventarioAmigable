@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import SimpleDashboard from './components/SimpleDashboard';
+import SimpleProductForm from './components/SimpleProductForm';
 import ProductForm from './components/ProductForm';
 import MovementForm from './components/MovementForm';
 import InventoryTaking from './components/InventoryTaking';
@@ -96,7 +97,7 @@ function AppContent() {
           </div>
         );
       case 'products':
-        return <ProductForm />;
+        return <SimpleProductForm />;
       case 'movements':
         return <MovementForm />;
       case 'inventory':
