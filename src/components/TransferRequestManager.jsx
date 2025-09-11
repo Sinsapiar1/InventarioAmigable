@@ -34,6 +34,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
+      console.log('📋 TransferRequestManager abierto, cargando solicitudes...');
       loadTransferRequests();
     }
   }, [isOpen]);
@@ -55,12 +56,20 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
 
   const loadPendingRequests = async () => {
     try {
+      console.log('📥 Cargando solicitudes pendientes para usuario:', currentUser.uid);
       const transfersRef = collection(db, 'solicitudes-traspaso');
       const snapshot = await getDocs(transfersRef);
       
       const pending = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log('📄 Solicitud encontrada:', {
+          id: doc.id,
+          usuarioDestino: data.usuarioDestinoId,
+          estado: data.estado,
+          esParaMi: data.usuarioDestinoId === currentUser.uid
+        });
+        
         if (data.usuarioDestinoId === currentUser.uid && data.estado === 'pendiente') {
           pending.push({
             id: doc.id,
@@ -69,6 +78,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
         }
       });
       
+      console.log('📋 Solicitudes pendientes encontradas:', pending.length);
       setPendingRequests(pending);
     } catch (error) {
       console.error('Error cargando solicitudes pendientes:', error);
