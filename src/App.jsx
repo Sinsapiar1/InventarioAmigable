@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { WarehouseProvider, useWarehouse } from './contexts/WarehouseContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import ProductForm from './components/ProductForm';
@@ -27,6 +28,7 @@ import {
 // Componente principal de la aplicación
 function AppContent() {
   const { currentUser, logout, userProfile } = useAuth();
+  const { activeWarehouse, warehouses, getActiveWarehouse, changeActiveWarehouse } = useWarehouse();
   const [currentView, setCurrentView] = useState('dashboard');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -49,6 +51,7 @@ function AppContent() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
 
   // Cerrar menú móvil cuando se cambia de vista
   useEffect(() => {
@@ -391,16 +394,36 @@ function AppContent() {
               </div>
             </div>
 
-            {/* Información del almacén */}
+            {/* Selector de almacén */}
             <div className="mt-auto p-4 border-t border-gray-200">
               <div className="bg-gray-50 rounded-lg p-3">
-                <h4 className="text-sm font-medium text-gray-900 mb-1">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
                   Almacén Activo
                 </h4>
-                <p className="text-xs text-gray-600">Almacén Principal</p>
-                <div className="mt-2 flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-green-600">Conectado</span>
+                
+                {/* Selector de almacén */}
+                <select
+                  value={activeWarehouse}
+                  onChange={(e) => changeActiveWarehouse(e.target.value)}
+                  className="w-full text-xs bg-white border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {warehouses.map((warehouse) => (
+                    <option key={warehouse.id} value={warehouse.id}>
+                      {warehouse.nombre} {warehouse.id === 'principal' ? '(Principal)' : ''}
+                    </option>
+                  ))}
+                </select>
+                
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-green-600">Conectado</span>
+                  </div>
+                  {warehouses.length > 1 && (
+                    <span className="text-xs text-blue-600 font-medium">
+                      {warehouses.length} almacenes
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -531,11 +554,13 @@ function AppContent() {
   );
 }
 
-// Componente principal con Provider
+// Componente principal con Providers
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <WarehouseProvider>
+        <AppContent />
+      </WarehouseProvider>
     </AuthProvider>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useWarehouse } from '../contexts/WarehouseContext';
 import {
   collection,
   doc,
@@ -35,6 +36,7 @@ import {
 
 const ProductForm = () => {
   const { currentUser } = useAuth();
+  const { activeWarehouse, getActiveWarehouse } = useWarehouse();
   const { confirmState, closeConfirm, handleConfirm, confirmDelete } = useConfirm();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +82,13 @@ const ProductForm = () => {
     loadProducts();
   }, [currentUser]);
 
+  // Recargar productos cuando cambia el almacén activo
+  useEffect(() => {
+    if (currentUser && activeWarehouse) {
+      loadProducts();
+    }
+  }, [activeWarehouse]);
+
   // Recargar productos cada 15 segundos (menos parpadeo)
   useEffect(() => {
     if (!currentUser) return;
@@ -103,7 +112,7 @@ const ProductForm = () => {
         'usuarios',
         currentUser.uid,
         'almacenes',
-        'principal',
+        activeWarehouse,
         'productos'
       );
       const productosQuery = query(
@@ -560,7 +569,7 @@ const ProductForm = () => {
             Gestión de Productos
           </h1>
           <p className="text-gray-600 mt-1">
-            Administra tu catálogo de productos
+            Administra tu catálogo de productos • <span className="font-medium text-blue-600">{getActiveWarehouse().nombre}</span>
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex gap-3">
