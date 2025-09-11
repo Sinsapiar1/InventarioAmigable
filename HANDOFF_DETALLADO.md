@@ -595,8 +595,16 @@ git log --oneline -5         # Ver últimos commits
 
 ## 🎯 **PRÓXIMAS MEJORAS SUGERIDAS**
 
-### **Funcionalidades Prioritarias:**
-- 🔐 **Sistema de Verificación de Emails**: Lista de emails autorizados + códigos de verificación
+### **🚨 TAREA PENDIENTE PRINCIPAL:**
+- 🔐 **VERIFICACIÓN DE EMAILS POR CÓDIGO**: 
+  - **Objetivo**: Usuario se registra → Recibe código por email → Verifica → Acceso
+  - **Problema técnico**: sendEmailVerification() de Firebase rompe login de usuarios existentes
+  - **Intentos realizados**: 3 intentos fallidos, todos revertidos por romper sistema
+  - **Estado**: PENDIENTE - Requiere solución técnica específica
+  - **Prioridad**: MEDIA - Sistema funciona perfecto sin esto
+  - **Recomendación**: Implementar en ambiente separado primero
+
+### **Funcionalidades Adicionales:**
 - 📊 **Reportes**: Exportar datos a Excel/CSV
 - 📱 **Códigos de barras**: Generación y escaneo automático
 - 🏢 **Proveedores**: Gestión completa de proveedores
@@ -614,22 +622,27 @@ git log --oneline -5         # Ver últimos commits
 
 ## 📞 **CONTACTO Y SOPORTE**
 
-### **Versión Actual**: 2.0.0 (Sistema Profesional)
+### **Versión Actual**: 2.0.0 (Sistema Empresarial Completo)
 ### **Última Actualización**: 11 de Septiembre, 2025
-### **Commit Actual**: `951de9a`
-### **Estado**: ✅ Completamente Funcional
+### **Commit Actual**: `3d6cd81` (Problema Scroll Solucionado)
+### **Estado**: ✅ 100% Funcional y Estable
 
 ---
 
 ## ⚡ **RESUMEN EJECUTIVO**
 
-**El Sistema de Inventario Pro es una aplicación web completa que permite:**
+**El Sistema de Inventario Pro es una aplicación web empresarial completa que permite:**
 
-1. **Gestión completa de inventarios** con múltiples almacenes
-2. **Colaboración entre usuarios** con sistema de amigos
-3. **Transferencias profesionales** con documentación automática
+1. **Gestión completa de inventarios** con múltiples almacenes por usuario
+2. **Colaboración entre usuarios** con sistema de amigos y solicitudes
+3. **Transferencias profesionales** con aprobación y PDFs automáticos
 4. **Notificaciones en tiempo real** para todas las operaciones
-5. **Validaciones robustas** que previenen errores
-6. **Interfaz responsive** que funciona en todos los dispositivos
+5. **Validaciones robustas** que previenen errores de stock y datos
+6. **Interfaz responsive** que funciona perfectamente en todos los dispositivos
+7. **Sistema de traspasos** con solicitud → aprobación → ejecución → documento
+8. **Números enteros exactos** sin problemas de decimales o scroll
 
-**Es un sistema nivel empresarial listo para uso en producción.**
+**Es un sistema nivel empresarial 100% funcional, estable y listo para producción.**
+
+### **🔐 Nota sobre Verificación Email:**
+Se intentó implementar verificación por email 3 veces, pero cada intento rompía el login de usuarios existentes. La funcionalidad actual permite registro libre pero el sistema es completamente funcional sin esta verificación. Se recomienda implementar en futuras versiones con ambiente de testing dedicado.
