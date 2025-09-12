@@ -233,7 +233,19 @@ function AppContent() {
             <div className="flex items-center space-x-2">
               {/* Toggle de tema rápido */}
               <button
-                onClick={() => setIsDark(!isDark)}
+                onClick={() => {
+                  const newTheme = !isDark;
+                  setIsDark(newTheme);
+                  const root = document.documentElement;
+                  if (newTheme) {
+                    root.classList.add('dark');
+                    root.classList.remove('light');
+                  } else {
+                    root.classList.add('light');
+                    root.classList.remove('dark');
+                  }
+                  localStorage.setItem('inventario-theme', newTheme ? 'dark' : 'light');
+                }}
                 className={`p-2 rounded-lg transition-all duration-200 ${
                   isDark 
                     ? 'text-yellow-400 hover:text-yellow-300 hover:bg-gray-800' 

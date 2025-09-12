@@ -252,26 +252,41 @@ const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsM
                   </label>
                   
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-lg border-2 border-blue-500 bg-blue-50 text-blue-700 shadow-md">
+                    <button
+                      onClick={() => toggleThemeLocal('light')}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                        !isDark
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
                       <div className="flex items-center space-x-3">
                         <Sun className="w-5 h-5" />
                         <div>
                           <div className="font-semibold">Modo Claro</div>
-                          <div className="text-xs opacity-75">Actualmente activo</div>
+                          <div className="text-xs opacity-75">Interfaz tradicional</div>
                         </div>
-                        <Check className="w-4 h-4 ml-auto" />
+                        {!isDark && <Check className="w-4 h-4 ml-auto" />}
                       </div>
-                    </div>
+                    </button>
                     
-                    <div className="p-4 rounded-lg border-2 border-gray-300 text-gray-500">
+                    <button
+                      onClick={() => toggleThemeLocal('dark')}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                        isDark
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
                       <div className="flex items-center space-x-3">
                         <Moon className="w-5 h-5" />
                         <div>
                           <div className="font-semibold">Modo Oscuro</div>
-                          <div className="text-xs opacity-75">Temporalmente deshabilitado</div>
+                          <div className="text-xs opacity-75">Reduce fatiga visual</div>
                         </div>
+                        {isDark && <Check className="w-4 h-4 ml-auto" />}
                       </div>
-                    </div>
+                    </button>
                   </div>
                   
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
