@@ -51,8 +51,12 @@ const InventoryTaking = () => {
 
   // Recargar cuando cambie el modo o almacén seleccionado
   useEffect(() => {
-    if (currentUser && selectedWarehouse && inventoryMode) {
-      loadProducts();
+    if (currentUser && inventoryMode) {
+      if (inventoryMode === 'specific' && selectedWarehouse) {
+        loadProducts();
+      } else if (inventoryMode === 'general') {
+        loadProducts();
+      }
     }
   }, [inventoryMode, selectedWarehouse]);
 
@@ -78,6 +82,13 @@ const InventoryTaking = () => {
 
   // Cargar productos de un almacén específico
   const loadProductsFromWarehouse = async (warehouseId) => {
+    if (!warehouseId) {
+      console.error('warehouseId is required');
+      setProducts([]);
+      setInventoryData({});
+      return;
+    }
+
     const productosRef = collection(
       db,
       'usuarios',
@@ -116,20 +127,30 @@ const InventoryTaking = () => {
 
   // Cargar productos de todos los almacenes consolidados
   const loadProductsFromAllWarehouses = async () => {
+    if (!warehouses || warehouses.length === 0) {
+      console.error('No warehouses available');
+      setProducts([]);
+      setInventoryData({});
+      return;
+    }
+
     const allProducts = new Map(); // Para consolidar productos por SKU
     const inventoryInitialData = {};
 
     // Cargar productos de cada almacén
     for (const warehouse of warehouses) {
-      const productosRef = collection(
-        db,
-        'usuarios',
-        currentUser.uid,
-        'almacenes',
-        warehouse.id,
-        'productos'
-      );
-      const snapshot = await getDocs(productosRef);
+      if (!warehouse.id) continue;
+      
+      try {
+        const productosRef = collection(
+          db,
+          'usuarios',
+          currentUser.uid,
+          'almacenes',
+          warehouse.id,
+          'productos'
+        );
+        const snapshot = await getDocs(productosRef);
 
       snapshot.forEach((doc) => {
         const productData = doc.data();
@@ -163,6 +184,9 @@ const InventoryTaking = () => {
           });
         }
       });
+      } catch (error) {
+        console.error(`Error loading products from warehouse ${warehouse.id}:`, error);
+      }
     }
 
     // Convertir Map a Array y crear datos de inventario
@@ -731,7 +755,7 @@ const InventoryTaking = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Conteo de Productos ({displayProducts.length})
+                  Conteo de Productos ({displayItems.length})
                 </h2>
 
                 <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
