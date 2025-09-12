@@ -22,10 +22,17 @@ export function WarehouseProvider({ children }) {
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Cargar almacenes cuando cambia el usuario
+  // CARGA AUTOMÁTICA DESHABILITADA - QUOTA EXCEEDED
   useEffect(() => {
     if (currentUser) {
-      loadWarehouses();
+      // loadWarehouses(); // TEMPORALMENTE DESHABILITADO
+      // Usar datos por defecto hasta que se resetee quota
+      setWarehouses([{
+        id: 'principal',
+        nombre: 'Almacén Principal',
+        ubicacion: 'Ubicación Principal',
+        activo: true
+      }]);
     } else {
       setWarehouses([]);
       setActiveWarehouse('principal');
@@ -33,6 +40,10 @@ export function WarehouseProvider({ children }) {
   }, [currentUser]);
 
   const loadWarehouses = async () => {
+    // TEMPORALMENTE DESHABILITADO - QUOTA EXCEEDED
+    console.warn('loadWarehouses deshabilitado temporalmente por quota exceeded');
+    return;
+    
     try {
       setLoading(true);
       const warehousesRef = collection(db, 'usuarios', currentUser.uid, 'almacenes');

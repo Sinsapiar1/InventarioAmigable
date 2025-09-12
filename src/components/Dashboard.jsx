@@ -57,15 +57,18 @@ const Dashboard = () => {
   const [allProducts, setAllProducts] = useState([]);
 
   // Cargar datos al montar el componente
+  // CARGA AUTOMÁTICA DESHABILITADA - QUOTA EXCEEDED
   useEffect(() => {
     if (!currentUser) return;
-    loadDashboardData();
+    // loadDashboardData(); // TEMPORALMENTE DESHABILITADO
+    console.warn('Dashboard auto-load deshabilitado por quota exceeded');
   }, [currentUser]);
 
-  // Recargar datos cuando cambia el almacén activo
+  // RECARGA POR ALMACÉN DESHABILITADA - QUOTA EXCEEDED
   useEffect(() => {
     if (currentUser && activeWarehouse) {
-      loadDashboardData();
+      // loadDashboardData(); // TEMPORALMENTE DESHABILITADO
+      console.warn('Dashboard warehouse-change deshabilitado por quota exceeded');
     }
   }, [activeWarehouse]);
 

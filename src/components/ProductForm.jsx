@@ -80,14 +80,17 @@ const ProductForm = () => {
   ];
 
   // Cargar productos al montar el componente
+  // CARGA AUTOMÁTICA DESHABILITADA - QUOTA EXCEEDED
   useEffect(() => {
-    loadProducts();
+    // loadProducts(); // TEMPORALMENTE DESHABILITADO
+    console.warn('ProductForm auto-load deshabilitado por quota exceeded');
   }, [currentUser]);
 
-  // Recargar productos cuando cambia el almacén activo
+  // RECARGA POR ALMACÉN DESHABILITADA - QUOTA EXCEEDED
   useEffect(() => {
     if (currentUser && activeWarehouse) {
-      loadProducts();
+      // loadProducts(); // TEMPORALMENTE DESHABILITADO
+      console.warn('ProductForm warehouse-change deshabilitado por quota exceeded');
     }
   }, [activeWarehouse]);
 
