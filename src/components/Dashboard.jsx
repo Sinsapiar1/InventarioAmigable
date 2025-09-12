@@ -28,7 +28,8 @@ import {
   BarChart,
   Clipboard,
   X,
-  ArrowRight
+  ArrowRight,
+  Download
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -351,6 +352,52 @@ const Dashboard = () => {
   const handleShowFullHistory = async () => {
     setShowFullHistory(true);
     await loadFullHistory();
+  };
+
+  // Exportar historial completo
+  const exportFullHistory = () => {
+    const csvData = fullHistory.map((movement) => {
+      const { origenDestino, usuarioInfo, detallesInteligentes } = getMovementDetails(movement);
+      
+      return {
+        Fecha: movement.fecha.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        Producto: movement.productoNombre,
+        SKU: movement.productoSKU,
+        Operacion: movement.tipoMovimiento,
+        SubTipo: movement.subTipo,
+        Cantidad: `${movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}${movement.cantidad}`,
+        StockAnterior: movement.stockAnterior !== undefined ? movement.stockAnterior : 'N/A',
+        StockNuevo: movement.stockNuevo !== undefined ? movement.stockNuevo : 'N/A',
+        OrigenDestino: origenDestino,
+        UsuarioInfo: usuarioInfo,
+        Razon: movement.razon || '',
+        Observaciones: movement.observaciones || '',
+        DetallesCompletos: detallesInteligentes,
+        CreadoPor: movement.creadoPor,
+        Almacen: getActiveWarehouse()?.nombre || 'N/A'
+      };
+    });
+
+    const csvContent = [
+      Object.keys(csvData[0]).join(','),
+      ...csvData.map((row) => Object.values(row).map(val => `"${val}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historial_completo_${getActiveWarehouse()?.nombre.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   // Generar información inteligente de origen/destino
@@ -905,12 +952,21 @@ const Dashboard = () => {
                 <h2 className="text-xl font-semibold text-gray-900">
                   Historial Completo - {getActiveWarehouse()?.nombre}
                 </h2>
-                <button
-                  onClick={() => setShowFullHistory(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={exportFullHistory}
+                    className="btn-secondary flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Exportar</span>
+                  </button>
+                  <button
+                    onClick={() => setShowFullHistory(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -933,9 +989,6 @@ const Dashboard = () => {
                           </th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Cantidad
-                          </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                            Stock
                           </th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Origen/Destino
@@ -1003,29 +1056,27 @@ const Dashboard = () => {
                                   {movement.cantidad}
                                 </span>
                               </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
-                                {movement.stockAnterior !== undefined && movement.stockNuevo !== undefined ? (
-                                  <div className="flex items-center space-x-1">
-                                    <span className="text-gray-500 text-xs">{movement.stockAnterior}</span>
-                                    <ArrowRight className="w-3 h-3 text-gray-400" />
-                                    <span className="font-medium text-xs">{movement.stockNuevo}</span>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-gray-400">N/A</span>
-                                )}
-                              </td>
                               <td className="px-3 py-2">
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[120px]" title={origenDestino}>
+                                  <div 
+                                    className="text-sm font-medium text-gray-900 truncate max-w-[140px] cursor-help" 
+                                    title={`${origenDestino} - ${usuarioInfo}`}
+                                  >
                                     {origenDestino}
                                   </div>
-                                  <div className="text-xs text-gray-500 truncate max-w-[120px]" title={usuarioInfo}>
+                                  <div 
+                                    className="text-xs text-gray-500 truncate max-w-[140px] cursor-help" 
+                                    title={usuarioInfo}
+                                  >
                                     {usuarioInfo}
                                   </div>
                                 </div>
                               </td>
                               <td className="px-3 py-2 text-sm text-gray-900 max-w-xs hidden xl:table-cell">
-                                <div className="truncate" title={detallesInteligentes}>
+                                <div 
+                                  className="truncate cursor-help" 
+                                  title={`${detallesInteligentes} | Razón: ${movement.razon || 'N/A'} | Observaciones: ${movement.observaciones || 'N/A'}`}
+                                >
                                   {detallesInteligentes}
                                 </div>
                               </td>
@@ -1061,30 +1112,18 @@ const Dashboard = () => {
                             </span>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-3 mb-3">
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Cantidad</p>
-                              <p className={`font-bold ${
-                                movement.tipoMovimiento === 'entrada' 
-                                  ? 'text-green-600'
-                                  : movement.tipoMovimiento === 'salida'
-                                  ? 'text-red-600'
-                                  : 'text-blue-600'
-                              }`}>
-                                {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
-                                {movement.cantidad}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Stock</p>
-                              {movement.stockAnterior !== undefined && movement.stockNuevo !== undefined ? (
-                                <p className="text-sm font-medium text-gray-900">
-                                  {movement.stockAnterior} → {movement.stockNuevo}
-                                </p>
-                              ) : (
-                                <p className="text-sm text-gray-400">N/A</p>
-                              )}
-                            </div>
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-500 mb-1">Cantidad</p>
+                            <p className={`font-bold text-lg ${
+                              movement.tipoMovimiento === 'entrada' 
+                                ? 'text-green-600'
+                                : movement.tipoMovimiento === 'salida'
+                                ? 'text-red-600'
+                                : 'text-blue-600'
+                            }`}>
+                              {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
+                              {movement.cantidad} unidades
+                            </p>
                           </div>
                           
                           <div className="mb-3">
