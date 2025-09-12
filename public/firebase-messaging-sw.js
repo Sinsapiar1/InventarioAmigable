@@ -4,14 +4,14 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Configuración de Firebase (misma que tu firebase.js)
+// Configuración de Firebase (exacta de tu firebase.js)
 const firebaseConfig = {
-  apiKey: "AIzaSyBk0R1PyH76HBGqnIu8wpyai3Y3keq_GMc",
-  authDomain: "inventario-pro-9f9e6.firebaseapp.com",
-  projectId: "inventario-pro-9f9e6",
-  storageBucket: "inventario-pro-9f9e6.firebasestorage.app",
-  messagingSenderId: "448448448448",
-  appId: "1:448448448448:web:abc123def456"
+  apiKey: 'AIzaSyBk0R1PyH76HBGqnIu8wpyai3Y3keq_GMc',
+  authDomain: 'inventario-pro-9f9e6.firebaseapp.com',
+  projectId: 'inventario-pro-9f9e6',
+  storageBucket: 'inventario-pro-9f9e6.firebasestorage.app',
+  messagingSenderId: '1068233917670',
+  appId: '1:1068233917670:web:fc86b65dc4ee01f0f9e727'
 };
 
 // Inicializar Firebase

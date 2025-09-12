@@ -2,11 +2,11 @@
 // Maneja FCM tokens, permisos y envío de notificaciones
 
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 
-// Clave web de FCM - Se configurará con la clave de Firebase Console
-const VAPID_KEY = process.env.REACT_APP_VAPID_KEY || 'PENDIENTE_CONFIGURACION';
+// Clave web de FCM - Obtenida de Firebase Console
+const VAPID_KEY = 'BGrxcYhvsILlA6dcwPKbUlAfaU352ZA4HCUh3TIRXzfGw6gGa-0LFxm1GTGCHMdfAXlPfFOfYimrb4QywiVq4gw';
 
 class PushNotificationService {
   constructor() {
@@ -224,6 +224,51 @@ export const checkPushSupport = () => {
 
 export const isPushEnabledForUser = (userId) => {
   return pushNotificationService.isEnabledForUser(userId);
+};
+
+// Función para enviar notificación push a un usuario específico
+export const sendPushNotification = async (userId, title, body, data = {}) => {
+  try {
+    console.log('📲 Enviando push notification a usuario:', userId);
+    
+    // Obtener token FCM del usuario
+    const userRef = doc(db, 'usuarios', userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+      console.log('❌ Usuario no encontrado:', userId);
+      return false;
+    }
+
+    const userData = userDoc.data();
+    const fcmToken = userData.fcmToken;
+    
+    if (!fcmToken || !userData.pushNotificationsEnabled) {
+      console.log('📱 Usuario no tiene push notifications habilitadas:', userId);
+      return false;
+    }
+
+    // Crear notificación en Firestore para trigger de Cloud Function
+    const notificationData = {
+      userId: userId,
+      fcmToken: fcmToken,
+      title: title,
+      body: body,
+      data: data,
+      sent: false,
+      createdAt: new Date().toISOString(),
+      type: 'push'
+    };
+
+    // Guardar en colección especial para Cloud Functions
+    await addDoc(collection(db, 'push-notifications'), notificationData);
+    
+    console.log('📲 Push notification programada para envío');
+    return true;
+  } catch (error) {
+    console.error('❌ Error enviando push notification:', error);
+    return false;
+  }
 };
 
 console.log('📲 Push Notification Service cargado');
