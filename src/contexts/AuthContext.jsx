@@ -184,22 +184,36 @@ export function AuthProvider({ children }) {
   // Cerrar sesión
   async function logout() {
     try {
-      await signOut(auth);
+      console.log('🔓 AuthContext: Iniciando logout...');
+      
+      // Limpiar perfil inmediatamente
       setUserProfile(null);
+      
+      // Cerrar sesión en Firebase
+      await signOut(auth);
+      
+      console.log('✅ AuthContext: Logout exitoso');
       
       // Mostrar mensaje de éxito
       if (window.showSuccess) {
         window.showSuccess('Sesión cerrada correctamente');
       }
     } catch (error) {
-      console.error('Error en logout:', error);
+      console.error('❌ AuthContext: Error en logout:', error);
+      
+      // Limpieza forzada en caso de error
+      setUser(null);
+      setUserProfile(null);
       
       // Mostrar error al usuario
       if (window.showError) {
-        window.showError('Error al cerrar sesión. Intenta nuevamente.');
+        window.showError('Error al cerrar sesión. Recargando página...');
       }
       
-      throw new Error('Error al cerrar sesión');
+      // Recargar página como fallback seguro
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     }
   }
 

@@ -43,7 +43,7 @@ export const ThemeProvider = ({ children }) => {
         return;
       }
 
-      // Usuario logueado: cargar de Firestore
+      // Usuario logueado: cargar de Firestore con protección
       const userRef = doc(db, 'usuarios', currentUser.uid);
       const userDoc = await getDoc(userRef);
       
@@ -59,8 +59,14 @@ export const ThemeProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('❌ Error cargando tema:', error);
-      // Fallback al tema claro
+      // Fallback seguro al tema claro
       setTheme('light');
+      
+      // Si es error de auth, no intentar más
+      if (error.code?.includes('auth') || error.message?.includes('auth')) {
+        console.log('🔄 Error de auth detectado en ThemeContext');
+        return;
+      }
     } finally {
       setLoading(false);
     }
@@ -90,7 +96,7 @@ export const ThemeProvider = ({ children }) => {
     setTheme(newTheme);
     
     try {
-      if (currentUser) {
+      if (currentUser && currentUser.uid) {
         // Guardar en Firestore para usuarios logueados
         const userRef = doc(db, 'usuarios', currentUser.uid);
         await updateDoc(userRef, {
@@ -107,6 +113,10 @@ export const ThemeProvider = ({ children }) => {
     } catch (error) {
       console.error('❌ Error guardando tema:', error);
       // No revertir el tema local, solo falló el guardado
+      // Si es error de auth durante logout, ignorar silenciosamente
+      if (error.code?.includes('auth') || error.message?.includes('permission')) {
+        console.log('🔄 Error de auth en toggleTheme (esperado durante logout)');
+      }
     }
   };
 
