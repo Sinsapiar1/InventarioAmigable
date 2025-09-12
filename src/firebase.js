@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getMessaging, isSupported } from 'firebase/messaging';
 
 // Configuración de Firebase
 const firebaseConfig = {
@@ -18,6 +19,21 @@ const app = initializeApp(firebaseConfig);
 // Inicializar servicios
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Inicializar Messaging (solo si está soportado)
+let messaging = null;
+if (typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported) {
+      messaging = getMessaging(app);
+      console.log('📲 Firebase Messaging inicializado');
+    } else {
+      console.log('📱 Firebase Messaging no soportado en este entorno');
+    }
+  });
+}
+
+export { messaging };
 
 // Solo para desarrollo - conectar al emulador si está disponible
 if (location.hostname === 'localhost') {

@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
+import NotificationPermission from './NotificationPermission';
 import { 
   Package, 
   TrendingUp, 
@@ -628,6 +629,9 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Componente de permisos push (solo si no están habilitados) */}
+      <NotificationPermission />
+
       {/* Encabezado con refresh */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
