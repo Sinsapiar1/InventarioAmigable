@@ -91,7 +91,7 @@ const InventoryTaking = () => {
   // Cargar productos de un almacén específico
   const loadProductsFromWarehouse = async (warehouseId) => {
     if (!warehouseId) {
-      console.error('warehouseId is required');
+      // console.log('warehouseId not provided, skipping load'); // Silenciar warning
       setProducts([]);
       setInventoryData({});
       return;
