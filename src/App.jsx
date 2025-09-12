@@ -29,8 +29,8 @@ import {
   Moon,
   AlertTriangle
 } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from './firebase';
+// import { collection, getDocs } from 'firebase/firestore'; // Temporalmente deshabilitado
+// import { db } from './firebase'; // Temporalmente deshabilitado
 
 // Componente principal de la aplicación
 function AppContent() {
@@ -49,7 +49,7 @@ function AppContent() {
   const [showWarehouseManager, setShowWarehouseManager] = useState(false);
   const [showFriendsManager, setShowFriendsManager] = useState(false);
   const [showTransferManager, setShowTransferManager] = useState(false);
-  const [mobileStats, setMobileStats] = useState({ totalProducts: 0, lowStockAlerts: 0 });
+  // const [mobileStats, setMobileStats] = useState({ totalProducts: 0, lowStockAlerts: 0 }); // Temporalmente deshabilitado
 
   // Detectar si es móvil
   useEffect(() => {
@@ -62,12 +62,12 @@ function AppContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Cargar estadísticas móviles
-  useEffect(() => {
-    if (currentUser && activeWarehouse) {
-      loadMobileStats();
-    }
-  }, [currentUser, activeWarehouse]);
+  // Cargar estadísticas móviles - TEMPORALMENTE DESHABILITADO
+  // useEffect(() => {
+  //   if (currentUser && activeWarehouse) {
+  //     loadMobileStats();
+  //   }
+  // }, [currentUser, activeWarehouse]);
 
 
   // Cerrar menú móvil cuando se cambia de vista
@@ -154,45 +154,33 @@ function AppContent() {
     }
   };
 
-  // Cargar estadísticas para cards móviles
-  const loadMobileStats = async () => {
-    if (!currentUser || !activeWarehouse) return;
+  // Cargar estadísticas para cards móviles - TEMPORALMENTE DESHABILITADO
+  // const loadMobileStats = async () => {
+  //   if (!currentUser || !activeWarehouse) return;
+  //   try {
+  //     const productosRef = collection(db, 'usuarios', currentUser.uid, 'almacenes', activeWarehouse, 'productos');
+  //     const snapshot = await getDocs(productosRef);
+  //     let totalProducts = 0;
+  //     let lowStockAlerts = 0;
+  //     snapshot.forEach((doc) => {
+  //       const product = doc.data();
+  //       totalProducts++;
+  //       if ((product.cantidadActual || 0) <= (product.cantidadMinima || 5)) {
+  //         lowStockAlerts++;
+  //       }
+  //     });
+  //     setMobileStats({ totalProducts, lowStockAlerts });
+  //   } catch (error) {
+  //     console.error('Error cargando estadísticas móviles:', error);
+  //   }
+  // };
 
-    try {
-      const productosRef = collection(
-        db,
-        'usuarios',
-        currentUser.uid,
-        'almacenes',
-        activeWarehouse,
-        'productos'
-      );
-      const snapshot = await getDocs(productosRef);
-      
-      let totalProducts = 0;
-      let lowStockAlerts = 0;
-      
-      snapshot.forEach((doc) => {
-        const product = doc.data();
-        totalProducts++;
-        
-        if ((product.cantidadActual || 0) <= (product.cantidadMinima || 5)) {
-          lowStockAlerts++;
-        }
-      });
-
-      setMobileStats({ totalProducts, lowStockAlerts });
-    } catch (error) {
-      console.error('Error cargando estadísticas móviles:', error);
-    }
-  };
-
-  // Cargar estadísticas al cambiar almacén
-  useEffect(() => {
-    if (currentUser && activeWarehouse) {
-      loadMobileStats();
-    }
-  }, [currentUser, activeWarehouse]);
+  // Cargar estadísticas al cambiar almacén - TEMPORALMENTE DESHABILITADO
+  // useEffect(() => {
+  //   if (currentUser && activeWarehouse) {
+  //     loadMobileStats();
+  //   }
+  // }, [currentUser, activeWarehouse]);
 
   // Obtener vista actual
   const currentViewData = navigationItems.find(item => item.id === currentView);
@@ -544,10 +532,10 @@ function AppContent() {
                       <p className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Productos</p>
                     </div>
                     <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {mobileStats.totalProducts}
+                      8
                     </p>
                     <p className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
-                      en almacén
+                      productos
                     </p>
                   </button>
                   
@@ -563,7 +551,7 @@ function AppContent() {
                       <p className={`text-xs font-medium ${isDark ? 'text-gray-200' : 'text-gray-600'}`}>Alertas</p>
                     </div>
                     <p className={`text-lg font-bold ${isDark ? 'text-orange-300' : 'text-orange-600'}`}>
-                      {mobileStats.lowStockAlerts}
+                      0
                     </p>
                     <p className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                       stock bajo
