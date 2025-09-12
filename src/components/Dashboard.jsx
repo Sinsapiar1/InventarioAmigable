@@ -635,12 +635,12 @@ const Dashboard = () => {
       {/* Encabezado con refresh */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
             <span className="font-medium text-blue-600 dark:text-blue-400">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
           </p>
-          <p className="text-xs text-gray-400 mt-2 hidden sm:block">
-            Sistema desarrollado por <span className="font-medium text-gray-500">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 hidden sm:block">
+            Sistema desarrollado por <span className="font-medium text-gray-500 dark:text-gray-400">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center space-x-3">
@@ -690,7 +690,7 @@ const Dashboard = () => {
                     }}
                     className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    <ArrowUpDown className="w-5 h-5 text-green-600" />
+                    <ArrowUpDown className="w-5 h-5 text-green-600 dark:text-green-400" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Registrar Movimiento</p>
                       <p className="text-xs text-gray-500">Entrada o salida de productos</p>
@@ -704,7 +704,7 @@ const Dashboard = () => {
                     }}
                     className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    <Clipboard className="w-5 h-5 text-purple-600" />
+                    <Clipboard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Toma de Inventario</p>
                       <p className="text-xs text-gray-500">Conteo físico de productos</p>
@@ -752,13 +752,13 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Productos</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalProductos}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center transition-colors">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10">
               <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-            <span className="text-green-600">+{stats.productosCreados} hoy</span>
+            <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 mr-1" />
+            <span className="text-green-600 dark:text-green-400 font-medium">+{stats.productosCreados} hoy</span>
           </div>
         </div>
 
@@ -767,14 +767,14 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Stock Bajo</p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.productosConStockBajo}</p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 dark:text-orange-400">{stats.productosConStockBajo}</p>
             </div>
-            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-orange-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className={`${stats.productosConStockBajo > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+            <span className={`${stats.productosConStockBajo > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'}`}>
               {stats.productosConStockBajo > 0 ? 'Requieren atención' : 'Niveles óptimos'}
             </span>
           </div>
@@ -785,17 +785,17 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Valor Total</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400 dark:text-green-400">
                 {formatCurrency(stats.valorTotalInventario)}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <ArrowUp className="w-4 h-4 text-green-600 mr-1" />
-            <span className="text-green-600">Inventario total</span>
+            <ArrowUp className="w-4 h-4 text-green-600 dark:text-green-400 mr-1" />
+            <span className="text-green-600 dark:text-green-400 font-medium">Inventario total</span>
           </div>
         </div>
 
@@ -804,15 +804,15 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Actividad</p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.movimientosHoy}</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 dark:text-purple-400">{stats.movimientosHoy}</p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-              <BarChart className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg flex items-center justify-center">
+              <BarChart className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <Calendar className="w-4 h-4 text-purple-600 mr-1" />
-            <span className="text-purple-600">{stats.movimientosSemana} esta semana</span>
+            <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400 mr-1" />
+            <span className="text-purple-600 dark:text-purple-400 dark:text-purple-400">{stats.movimientosSemana} esta semana</span>
           </div>
         </div>
       </div>
@@ -869,7 +869,7 @@ const Dashboard = () => {
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Alertas de Stock</h3>
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
           <div className="p-6">
@@ -882,7 +882,7 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-300">SKU: {producto.sku}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-orange-600 dark:text-orange-400">{producto.cantidadActual || 0}</p>
+                      <p className="font-semibold text-orange-600 dark:text-orange-400 dark:text-orange-400">{producto.cantidadActual || 0}</p>
                       <p className="text-xs text-orange-500 dark:text-orange-400">Min: {producto.cantidadMinima || 5}</p>
                     </div>
                   </div>
@@ -890,10 +890,10 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Package className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Package className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="text-green-600 font-medium">Todo el stock está en niveles óptimos</p>
+                <p className="text-green-600 dark:text-green-400 font-medium">Todo el stock está en niveles óptimos</p>
                 <p className="text-sm text-gray-500 mt-1">No hay productos con stock bajo</p>
               </div>
             )}
@@ -950,7 +950,7 @@ const Dashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             movimiento.tipoMovimiento === 'entrada' 
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800' 
+                              ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 text-green-800' 
                               : movimiento.tipoMovimiento === 'salida'
                               ? 'bg-red-100 text-red-800'
                               : 'bg-blue-100 text-blue-800'
@@ -989,7 +989,7 @@ const Dashboard = () => {
                       <div className="flex items-center space-x-2 ml-2">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           movimiento.tipoMovimiento === 'entrada' 
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800' 
+                            ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 text-green-800' 
                             : movimiento.tipoMovimiento === 'salida'
                             ? 'bg-red-100 text-red-800'
                             : 'bg-blue-100 text-blue-800'
@@ -1002,7 +1002,7 @@ const Dashboard = () => {
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className={`font-medium ${
-                        movimiento.tipoMovimiento === 'entrada' ? 'text-green-600' : 'text-red-600'
+                        movimiento.tipoMovimiento === 'entrada' ? 'text-green-600 dark:text-green-400' : 'text-red-600'
                       }`}>
                         {movimiento.tipoMovimiento === 'entrada' ? '+' : '-'}{movimiento.cantidad}
                       </span>
@@ -1101,7 +1101,7 @@ const Dashboard = () => {
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex items-center space-x-2">
-                                  <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>
+                                  <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-green-600 dark:text-green-400'}`}>
                                     {product.cantidadActual}
                                   </span>
                                   <span className="text-gray-400">/</span>
@@ -1115,7 +1115,7 @@ const Dashboard = () => {
                               </td>
                               <td className="px-4 py-3">
                                 <div className="text-sm">
-                                  <div className="text-green-600 font-medium">
+                                  <div className="text-green-600 dark:text-green-400 font-medium">
                                     ${product.precioVenta || 0}
                                   </div>
                                   <div className="text-gray-500 text-xs">
@@ -1139,7 +1139,7 @@ const Dashboard = () => {
                                     ? 'bg-red-100 text-red-800'
                                     : product.cantidadActual === 0
                                     ? 'bg-gray-100 text-gray-800'
-                                    : 'bg-green-100 dark:bg-green-900/30 text-green-800'
+                                    : 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 text-green-800'
                                 }`}>
                                   {isLowStock ? 'Stock Bajo' : product.cantidadActual === 0 ? 'Sin Stock' : 'Disponible'}
                                 </span>
@@ -1171,7 +1171,7 @@ const Dashboard = () => {
                                 ? 'bg-red-100 text-red-800'
                                 : product.cantidadActual === 0
                                 ? 'bg-gray-100 text-gray-800'
-                                : 'bg-green-100 dark:bg-green-900/30 text-green-800'
+                                : 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 text-green-800'
                             }`}>
                               {isLowStock ? 'Stock Bajo' : product.cantidadActual === 0 ? 'Sin Stock' : 'Disponible'}
                             </span>
@@ -1180,14 +1180,14 @@ const Dashboard = () => {
                           <div className="grid grid-cols-2 gap-3 mb-3">
                             <div>
                               <p className="text-xs text-gray-500 mb-1">Stock Actual</p>
-                              <p className={`font-bold text-lg ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>
+                              <p className={`font-bold text-lg ${isLowStock ? 'text-red-600' : 'text-green-600 dark:text-green-400'}`}>
                                 {product.cantidadActual}
                               </p>
                               <p className="text-xs text-gray-500">Mínimo: {product.cantidadMinima}</p>
                             </div>
                             <div>
                               <p className="text-xs text-gray-500 mb-1">Precio Venta</p>
-                              <p className="font-bold text-lg text-green-600">
+                              <p className="font-bold text-lg text-green-600 dark:text-green-400">
                                 ${product.precioVenta || 0}
                               </p>
                               <p className="text-xs text-gray-500">Compra: ${product.precioCompra || 0}</p>
@@ -1322,7 +1322,7 @@ const Dashboard = () => {
                                 <div className="flex flex-col">
                                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${
                                     movement.tipoMovimiento === 'entrada' 
-                                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800'
+                                      ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 text-green-800'
                                       : movement.tipoMovimiento === 'salida'
                                       ? 'bg-red-100 text-red-800'
                                       : 'bg-blue-100 text-blue-800'
@@ -1337,7 +1337,7 @@ const Dashboard = () => {
                               <td className="px-3 py-2 whitespace-nowrap text-sm">
                                 <span className={`font-bold ${
                                   movement.tipoMovimiento === 'entrada' 
-                                    ? 'text-green-600'
+                                    ? 'text-green-600 dark:text-green-400'
                                     : movement.tipoMovimiento === 'salida'
                                     ? 'text-red-600'
                                     : 'text-blue-600 dark:text-blue-400'
@@ -1393,7 +1393,7 @@ const Dashboard = () => {
                             </div>
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               movement.tipoMovimiento === 'entrada' 
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800'
+                                ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 text-green-800'
                                 : movement.tipoMovimiento === 'salida'
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-blue-100 text-blue-800'
@@ -1406,7 +1406,7 @@ const Dashboard = () => {
                             <p className="text-xs text-gray-500 mb-1">Cantidad</p>
                             <p className={`font-bold text-lg ${
                               movement.tipoMovimiento === 'entrada' 
-                                ? 'text-green-600'
+                                ? 'text-green-600 dark:text-green-400'
                                 : movement.tipoMovimiento === 'salida'
                                 ? 'text-red-600'
                                 : 'text-blue-600 dark:text-blue-400'
