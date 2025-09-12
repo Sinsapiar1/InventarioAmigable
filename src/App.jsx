@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WarehouseProvider, useWarehouse } from './contexts/WarehouseContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import ProductForm from './components/ProductForm';
@@ -30,6 +31,7 @@ import {
 function AppContent() {
   const { currentUser, logout, userProfile } = useAuth();
   const { activeWarehouse, warehouses, getActiveWarehouse, changeActiveWarehouse } = useWarehouse();
+  const { isDark } = useTheme();
   const [currentView, setCurrentView] = useState('dashboard');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -154,9 +156,9 @@ function AppContent() {
   const currentViewData = navigationItems.find(item => item.id === currentView);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+      <header className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm border-b sticky top-0 z-30`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo y botón móvil */}
@@ -177,7 +179,7 @@ function AppContent() {
                   <Package className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">
+                  <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {isMobile ? 'Inventario' : 'Sistema de Inventario Pro'}
                   </h1>
                   {!isMobile && (
@@ -600,7 +602,9 @@ function App() {
   return (
     <AuthProvider>
       <WarehouseProvider>
-        <AppContent />
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
       </WarehouseProvider>
     </AuthProvider>
   );

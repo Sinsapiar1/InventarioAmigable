@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
-import { Settings, Save, AlertTriangle, Check, X, Building, Users, ArrowRight } from 'lucide-react';
+import { Settings, Save, AlertTriangle, Check, X, Building, Users, ArrowRight, Sun, Moon } from 'lucide-react';
 
 const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsManager }) => {
   const { currentUser, userProfile, loadUserProfile } = useAuth();
+  const { theme, toggleTheme, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
@@ -213,6 +215,59 @@ const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsM
                     <p className="text-sm font-bold text-blue-800">Raúl Jaime Pivet Álvarez</p>
                     <p className="text-xs text-blue-600">Full Stack Developer • React + Firebase</p>
                   </div>
+                </div>
+              </div>
+
+              {/* Tema de la Aplicación */}
+              <div>
+                <h4 className="text-base font-semibold text-gray-900 mb-4">Apariencia</h4>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Tema de la aplicación
+                  </label>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => !isDark && toggleTheme()}
+                      className={`p-3 rounded-lg border-2 transition-colors text-left ${
+                        !isDark
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                      disabled={saving}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Sun className="w-4 h-4" />
+                        <div>
+                          <div className="font-medium text-sm">Modo Claro</div>
+                          <div className="text-xs opacity-75">Interfaz tradicional</div>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => isDark && toggleTheme()}
+                      className={`p-3 rounded-lg border-2 transition-colors text-left ${
+                        isDark
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                      disabled={saving}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Moon className="w-4 h-4" />
+                        <div>
+                          <div className="font-medium text-sm">Modo Oscuro</div>
+                          <div className="text-xs opacity-75">Reduce fatiga visual</div>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 mt-2">
+                    El tema se sincroniza entre todos tus dispositivos
+                  </p>
                 </div>
               </div>
 
