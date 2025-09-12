@@ -327,65 +327,99 @@ const Dashboard = () => {
 
   // Generar información inteligente de origen/destino
   const getMovementDetails = (movement) => {
-    const { subTipo, razon, observaciones, tipoMovimiento } = movement;
+    const { subTipo, razon, observaciones, tipoMovimiento, creadoPor } = movement;
     
     let origenDestino = '';
+    let usuarioInfo = '';
     let detallesInteligentes = '';
     
     // Información inteligente según el tipo de movimiento
     if (subTipo.includes('traspaso') || subTipo.includes('Traspaso')) {
       if (subTipo.includes('externo')) {
         // Traspaso externo - extraer información del razón
-        if (razon.includes('→')) {
-          origenDestino = razon.split('→')[1]?.trim() || 'Colaborador';
+        if (tipoMovimiento === 'entrada') {
+          // Si es entrada, alguien me envió algo
+          if (razon.includes('→')) {
+            const partes = razon.split('→');
+            origenDestino = `De: ${partes[0]?.trim() || 'Colaborador'}`;
+            usuarioInfo = 'Traspaso recibido';
+          } else {
+            origenDestino = 'De: Colaborador';
+            usuarioInfo = 'Traspaso recibido';
+          }
+          detallesInteligentes = `Recibido de colaborador • ${observaciones || 'Traspaso externo'}`;
         } else {
-          origenDestino = 'Colaborador externo';
+          // Si es salida, yo envié algo
+          if (razon.includes('→')) {
+            const partes = razon.split('→');
+            origenDestino = `Para: ${partes[1]?.trim() || 'Colaborador'}`;
+            usuarioInfo = `Enviado por: ${creadoPor}`;
+          } else {
+            origenDestino = 'Para: Colaborador';
+            usuarioInfo = `Enviado por: ${creadoPor}`;
+          }
+          detallesInteligentes = `Enviado a colaborador • ${observaciones || 'Traspaso externo'}`;
         }
-        detallesInteligentes = `${subTipo} • ${razon}`;
       } else if (subTipo.includes('interno')) {
-        origenDestino = razon.includes('desde') 
-          ? razon.split('desde ')[1]?.trim() || 'Otro almacén'
-          : 'Almacén interno';
-        detallesInteligentes = `Traspaso entre almacenes propios`;
+        if (tipoMovimiento === 'entrada') {
+          origenDestino = razon.includes('desde') 
+            ? `De: ${razon.split('desde ')[1]?.trim() || 'Otro almacén'}`
+            : 'De: Otro almacén';
+          usuarioInfo = 'Traspaso interno';
+        } else {
+          origenDestino = 'Para: Otro almacén';
+          usuarioInfo = `Por: ${creadoPor}`;
+        }
+        detallesInteligentes = `Traspaso entre mis almacenes • ${observaciones || 'Movimiento interno'}`;
       } else if (subTipo === 'Traspaso a otro almacén') {
         // Traspaso interno - detectar por subTipo específico
         if (tipoMovimiento === 'salida') {
-          origenDestino = 'Almacén destino';
-          detallesInteligentes = `Envío a otro almacén • ${razon || 'Traspaso interno'}`;
+          origenDestino = 'Para: Mi otro almacén';
+          usuarioInfo = `Por: ${creadoPor}`;
+          detallesInteligentes = `Enviado a mi otro almacén • ${razon || 'Traspaso interno'}`;
         } else {
-          origenDestino = 'Almacén origen';
-          detallesInteligentes = `Recibido de otro almacén • ${razon || 'Traspaso interno'}`;
+          origenDestino = 'De: Mi otro almacén';
+          usuarioInfo = 'Traspaso interno';
+          detallesInteligentes = `Recibido de mi otro almacén • ${razon || 'Traspaso interno'}`;
         }
       } else if (subTipo === 'Traspaso desde otro almacén') {
-        origenDestino = 'Almacén origen';
-        detallesInteligentes = `Recibido de otro almacén • ${razon || 'Traspaso interno'}`;
+        origenDestino = 'De: Mi otro almacén';
+        usuarioInfo = 'Traspaso interno';
+        detallesInteligentes = `Recibido de mi otro almacén • ${razon || 'Traspaso interno'}`;
       } else {
         origenDestino = 'Traspaso interno';
+        usuarioInfo = `Por: ${creadoPor}`;
         detallesInteligentes = `${subTipo} • ${razon || 'Entre almacenes'}`;
       }
     } else if (subTipo.includes('importacion')) {
       origenDestino = 'Importación masiva';
+      usuarioInfo = `Por: ${creadoPor}`;
       detallesInteligentes = `Creado/actualizado por import • ${observaciones || 'Sin comentarios'}`;
     } else if (subTipo.includes('inventario')) {
       origenDestino = 'Toma de inventario';
+      usuarioInfo = `Por: ${creadoPor}`;
       detallesInteligentes = `Ajuste físico • ${observaciones || 'Conteo manual'}`;
     } else if (subTipo.includes('proveedor')) {
       origenDestino = 'Proveedor';
+      usuarioInfo = `Registrado por: ${creadoPor}`;
       detallesInteligentes = `Compra • ${observaciones || 'Sin detalles'}`;
     } else if (subTipo.includes('cliente')) {
       origenDestino = 'Cliente';
+      usuarioInfo = `Registrado por: ${creadoPor}`;
       detallesInteligentes = tipoMovimiento === 'entrada' 
         ? `Devolución de cliente • ${observaciones || ''}`
         : `Venta a cliente • ${observaciones || ''}`;
     } else if (subTipo.includes('ajuste')) {
       origenDestino = 'Ajuste manual';
+      usuarioInfo = `Por: ${creadoPor}`;
       detallesInteligentes = `${tipoMovimiento === 'entrada' ? 'Corrección positiva' : 'Corrección negativa'} • ${razon}`;
     } else {
       origenDestino = 'Sistema';
+      usuarioInfo = `Por: ${creadoPor}`;
       detallesInteligentes = subTipo;
     }
     
-    return { origenDestino, detallesInteligentes };
+    return { origenDestino, usuarioInfo, detallesInteligentes };
   };
 
   // Formatear números a moneda
@@ -871,7 +905,7 @@ const Dashboard = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {fullHistory.map((movement) => {
-                          const { origenDestino, detallesInteligentes } = getMovementDetails(movement);
+                          const { origenDestino, usuarioInfo, detallesInteligentes } = getMovementDetails(movement);
                           
                           return (
                             <tr key={movement.id} className="hover:bg-gray-50">
@@ -939,8 +973,8 @@ const Dashboard = () => {
                                   <div className="text-sm font-medium text-gray-900 truncate max-w-[120px]" title={origenDestino}>
                                     {origenDestino}
                                   </div>
-                                  <div className="text-xs text-gray-500 truncate max-w-[120px]" title={movement.creadoPor}>
-                                    {movement.creadoPor}
+                                  <div className="text-xs text-gray-500 truncate max-w-[120px]" title={usuarioInfo}>
+                                    {usuarioInfo}
                                   </div>
                                 </div>
                               </td>
@@ -959,7 +993,7 @@ const Dashboard = () => {
                   {/* Vista Móvil */}
                   <div className="md:hidden space-y-4 p-4">
                     {fullHistory.map((movement) => {
-                      const { origenDestino, detallesInteligentes } = getMovementDetails(movement);
+                      const { origenDestino, usuarioInfo, detallesInteligentes } = getMovementDetails(movement);
                       
                       return (
                         <div key={movement.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
@@ -1006,6 +1040,7 @@ const Dashboard = () => {
                           <div className="mb-3">
                             <p className="text-xs text-gray-500 mb-1">Origen/Destino</p>
                             <p className="text-sm font-medium text-gray-900">{origenDestino}</p>
+                            <p className="text-xs text-gray-600 mt-1">{usuarioInfo}</p>
                           </div>
                           
                           <div className="mb-3">
