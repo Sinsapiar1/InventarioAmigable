@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useWarehouse } from '../contexts/WarehouseContext';
 import {
   collection,
   doc,
@@ -26,6 +27,7 @@ import {
 
 const InventoryTaking = () => {
   const { currentUser } = useAuth();
+  const { activeWarehouse, warehouses, getActiveWarehouse } = useWarehouse();
   const [products, setProducts] = useState([]);
   const [inventoryData, setInventoryData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -36,53 +38,156 @@ const InventoryTaking = () => {
   const [showDiscrepancies, setShowDiscrepancies] = useState(false);
   const [inventoryStarted, setInventoryStarted] = useState(false);
   const [inventoryDate, setInventoryDate] = useState('');
+  const [inventoryMode, setInventoryMode] = useState('specific'); // 'specific' o 'general'
+  const [selectedWarehouse, setSelectedWarehouse] = useState('');
 
   // Cargar productos al montar el componente
   useEffect(() => {
-    loadProducts();
-  }, [currentUser]);
+    if (currentUser && activeWarehouse) {
+      setSelectedWarehouse(activeWarehouse);
+      loadProducts();
+    }
+  }, [currentUser, activeWarehouse]);
+
+  // Recargar cuando cambie el modo o almacén seleccionado
+  useEffect(() => {
+    if (currentUser && selectedWarehouse && inventoryMode) {
+      loadProducts();
+    }
+  }, [inventoryMode, selectedWarehouse]);
 
   // Cargar productos desde Firestore
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const productosRef = collection(
-        db,
-        'usuarios',
-        currentUser.uid,
-        'almacenes',
-        'principal',
-        'productos'
-      );
-      const snapshot = await getDocs(productosRef);
-
-      const productosData = [];
-      const inventoryInitialData = {};
-
-      snapshot.forEach((doc) => {
-        const productData = {
-          id: doc.id,
-          ...doc.data(),
-        };
-        productosData.push(productData);
-
-        // Inicializar datos de inventario
-        inventoryInitialData[doc.id] = {
-          cantidadSistema: productData.cantidadActual || 0,
-          cantidadFisica: '',
-          diferencia: 0,
-          checked: false,
-        };
-      });
-
-      setProducts(productosData);
-      setInventoryData(inventoryInitialData);
+      
+      if (inventoryMode === 'specific') {
+        // Modo específico: cargar productos de un almacén
+        await loadProductsFromWarehouse(selectedWarehouse);
+      } else {
+        // Modo general: cargar productos de todos los almacenes
+        await loadProductsFromAllWarehouses();
+      }
     } catch (error) {
       console.error('Error cargando productos:', error);
       setError('Error al cargar los productos');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Cargar productos de un almacén específico
+  const loadProductsFromWarehouse = async (warehouseId) => {
+    const productosRef = collection(
+      db,
+      'usuarios',
+      currentUser.uid,
+      'almacenes',
+      warehouseId,
+      'productos'
+    );
+    const snapshot = await getDocs(productosRef);
+
+    const productosData = [];
+    const inventoryInitialData = {};
+
+    snapshot.forEach((doc) => {
+      const productData = {
+        id: doc.id,
+        almacenId: warehouseId,
+        almacenNombre: warehouses.find(w => w.id === warehouseId)?.nombre || 'Almacén',
+        ...doc.data(),
+      };
+      productosData.push(productData);
+
+      // Inicializar datos de inventario
+      inventoryInitialData[doc.id] = {
+        cantidadSistema: productData.cantidadActual || 0,
+        cantidadFisica: '',
+        diferencia: 0,
+        checked: false,
+        almacenId: warehouseId,
+      };
+    });
+
+    setProducts(productosData);
+    setInventoryData(inventoryInitialData);
+  };
+
+  // Cargar productos de todos los almacenes consolidados
+  const loadProductsFromAllWarehouses = async () => {
+    const allProducts = new Map(); // Para consolidar productos por SKU
+    const inventoryInitialData = {};
+
+    // Cargar productos de cada almacén
+    for (const warehouse of warehouses) {
+      const productosRef = collection(
+        db,
+        'usuarios',
+        currentUser.uid,
+        'almacenes',
+        warehouse.id,
+        'productos'
+      );
+      const snapshot = await getDocs(productosRef);
+
+      snapshot.forEach((doc) => {
+        const productData = doc.data();
+        const sku = productData.sku;
+
+        if (allProducts.has(sku)) {
+          // Producto existe, agregar información del almacén
+          const existingProduct = allProducts.get(sku);
+          existingProduct.almacenes.push({
+            id: warehouse.id,
+            nombre: warehouse.nombre,
+            cantidad: productData.cantidadActual || 0,
+            docId: doc.id
+          });
+          existingProduct.cantidadTotal += productData.cantidadActual || 0;
+        } else {
+          // Producto nuevo
+          allProducts.set(sku, {
+            id: doc.id, // Usar el primer ID encontrado
+            sku: sku,
+            nombre: productData.nombre,
+            categoria: productData.categoria,
+            precioVenta: productData.precioVenta,
+            cantidadTotal: productData.cantidadActual || 0,
+            almacenes: [{
+              id: warehouse.id,
+              nombre: warehouse.nombre,
+              cantidad: productData.cantidadActual || 0,
+              docId: doc.id
+            }]
+          });
+        }
+      });
+    }
+
+    // Convertir Map a Array y crear datos de inventario
+    const productosData = Array.from(allProducts.values());
+    
+    productosData.forEach((product) => {
+      // Crear entrada de inventario por cada almacén
+      product.almacenes.forEach((almacen) => {
+        const key = `${product.sku}_${almacen.id}`;
+        inventoryInitialData[key] = {
+          cantidadSistema: almacen.cantidad,
+          cantidadFisica: '',
+          diferencia: 0,
+          checked: false,
+          almacenId: almacen.id,
+          almacenNombre: almacen.nombre,
+          sku: product.sku,
+          nombre: product.nombre,
+          docId: almacen.docId
+        };
+      });
+    });
+
+    setProducts(productosData);
+    setInventoryData(inventoryInitialData);
   };
 
   // Iniciar toma de inventario
@@ -207,11 +312,23 @@ const InventoryTaking = () => {
       const movimientos = [];
 
       // Procesar cada producto verificado
-      Object.keys(inventoryData).forEach((productId) => {
-        const data = inventoryData[productId];
+      Object.keys(inventoryData).forEach((key) => {
+        const data = inventoryData[key];
 
         if (data.checked && data.diferencia !== 0) {
-          const product = products.find((p) => p.id === productId);
+          let productId, almacenId, product;
+
+          if (inventoryMode === 'specific') {
+            // Modo específico: key es el productId
+            productId = key;
+            almacenId = data.almacenId;
+            product = products.find((p) => p.id === productId);
+          } else {
+            // Modo general: key es "sku_almacenId"
+            almacenId = data.almacenId;
+            productId = data.docId;
+            product = products.find((p) => p.sku === data.sku);
+          }
 
           // Actualizar cantidad en el producto
           const productRef = doc(
@@ -219,7 +336,7 @@ const InventoryTaking = () => {
             'usuarios',
             currentUser.uid,
             'almacenes',
-            'principal',
+            almacenId,
             'productos',
             productId
           );
@@ -233,7 +350,7 @@ const InventoryTaking = () => {
           // Preparar movimiento de ajuste
           movimientos.push({
             usuarioId: currentUser.uid,
-            almacenId: 'principal',
+            almacenId: almacenId,
             productoSKU: product.sku,
             productoNombre: product.nombre,
             tipoMovimiento: 'ajuste',
@@ -312,21 +429,56 @@ const InventoryTaking = () => {
     document.body.removeChild(a);
   };
 
-  // Filtrar productos
-  const filteredProducts = products.filter(
-    (product) =>
-      product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.categoria.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Crear estructura de datos para renderizado
+  const getDisplayItems = () => {
+    if (inventoryMode === 'specific') {
+      // Modo específico: mostrar productos directamente
+      const filteredProducts = products.filter(
+        (product) =>
+          product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
-  // Filtrar solo productos con discrepancias si está activado el filtro
-  const displayProducts = showDiscrepancies
-    ? filteredProducts.filter((product) => {
-        const data = inventoryData[product.id];
-        return data && data.checked && data.diferencia !== 0;
-      })
-    : filteredProducts;
+      return showDiscrepancies
+        ? filteredProducts.filter((product) => {
+            const data = inventoryData[product.id];
+            return data && data.checked && data.diferencia !== 0;
+          })
+        : filteredProducts;
+    } else {
+      // Modo general: crear items por cada producto-almacén
+      const items = [];
+      
+      Object.keys(inventoryData).forEach((key) => {
+        const data = inventoryData[key];
+        const [sku] = key.split('_');
+        
+        // Filtrar por búsqueda
+        if (
+          data.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          data.almacenNombre.toLowerCase().includes(searchTerm.toLowerCase())
+        ) {
+          // Filtrar por discrepancias si está activado
+          if (!showDiscrepancies || (data.checked && data.diferencia !== 0)) {
+            items.push({
+              key: key,
+              sku: sku,
+              nombre: data.nombre,
+              almacenNombre: data.almacenNombre,
+              cantidadSistema: data.cantidadSistema,
+              ...data
+            });
+          }
+        }
+      });
+      
+      return items;
+    }
+  };
+
+  const displayItems = getDisplayItems();
 
   const stats = calculateStats();
 
@@ -350,11 +502,95 @@ const InventoryTaking = () => {
             Concilia el inventario físico con el del sistema
           </p>
         </div>
+      </div>
+
+      {/* Selector de Modo de Inventario */}
+      {!inventoryStarted && (
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Configuración del Inventario
+          </h2>
+          
+          {/* Modo de Inventario */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <button
+              type="button"
+              onClick={() => setInventoryMode('specific')}
+              className={`p-4 rounded-lg border-2 transition-colors text-left ${
+                inventoryMode === 'specific'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="font-medium">Almacén Específico</div>
+              <div className="text-sm text-gray-600 mt-1">
+                Inventario de un almacén individual
+              </div>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setInventoryMode('general')}
+              className={`p-4 rounded-lg border-2 transition-colors text-left ${
+                inventoryMode === 'general'
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="font-medium">Inventario General</div>
+              <div className="text-sm text-gray-600 mt-1">
+                Todos los almacenes consolidados
+              </div>
+            </button>
+          </div>
+
+          {/* Selector de Almacén (solo en modo específico) */}
+          {inventoryMode === 'specific' && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Seleccionar Almacén
+              </label>
+              <select
+                value={selectedWarehouse}
+                onChange={(e) => setSelectedWarehouse(e.target.value)}
+                className="input-field"
+              >
+                <option value="">Seleccionar almacén</option>
+                {warehouses.map((warehouse) => (
+                  <option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.nombre} - {warehouse.ubicacion}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Resumen de configuración */}
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-sm text-gray-700">
+              <strong>Modo:</strong> {inventoryMode === 'specific' ? 'Almacén Específico' : 'Inventario General'}
+              {inventoryMode === 'specific' && selectedWarehouse && (
+                <>
+                  <br />
+                  <strong>Almacén:</strong> {warehouses.find(w => w.id === selectedWarehouse)?.nombre}
+                </>
+              )}
+              {inventoryMode === 'general' && (
+                <>
+                  <br />
+                  <strong>Almacenes:</strong> {warehouses.length} almacenes totales
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
         <div className="mt-4 sm:mt-0 flex space-x-3">
           {!inventoryStarted ? (
             <button
               onClick={startInventory}
-              className="btn-primary flex items-center space-x-2"
+              disabled={inventoryMode === 'specific' && !selectedWarehouse}
+              className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Clipboard className="w-4 h-4" />
               <span>Iniciar Inventario</span>
@@ -523,7 +759,7 @@ const InventoryTaking = () => {
             </div>
 
             {/* Tabla de productos */}
-            {displayProducts.length > 0 ? (
+            {displayItems.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -537,6 +773,11 @@ const InventoryTaking = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         SKU
                       </th>
+                      {inventoryMode === 'general' && (
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Almacén
+                        </th>
+                      )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Stock Sistema
                       </th>
@@ -549,49 +790,54 @@ const InventoryTaking = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {displayProducts.map((product) => {
-                      const data = inventoryData[product.id];
-                      const hasDiscrepancy =
-                        data.checked && data.diferencia !== 0;
+                    {displayItems.map((item) => {
+                      const itemKey = inventoryMode === 'specific' ? item.id : item.key;
+                      const data = inventoryData[itemKey];
+                      const hasDiscrepancy = data && data.checked && data.diferencia !== 0;
 
                       return (
                         <tr
-                          key={product.id}
+                          key={itemKey}
                           className={`${
-                            data.checked ? 'bg-green-50' : 'hover:bg-gray-50'
+                            data?.checked ? 'bg-green-50' : 'hover:bg-gray-50'
                           } ${hasDiscrepancy ? 'bg-orange-50' : ''}`}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <input
                               type="checkbox"
-                              checked={data.checked}
-                              onChange={() => toggleProductCheck(product.id)}
+                              checked={data?.checked || false}
+                              onChange={() => toggleProductCheck(itemKey)}
                               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
                               <div className="text-sm font-medium text-gray-900">
-                                {product.nombre}
+                                {inventoryMode === 'specific' ? item.nombre : item.nombre}
                               </div>
                               <div className="text-sm text-gray-500">
-                                {product.categoria}
+                                {inventoryMode === 'specific' ? item.categoria : 'General'}
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {product.sku}
+                            {inventoryMode === 'specific' ? item.sku : item.sku}
                           </td>
+                          {inventoryMode === 'general' && (
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {item.almacenNombre}
+                            </td>
+                          )}
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {data.cantidadSistema}
+                            {data?.cantidadSistema || 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <input
                               type="number"
-                              value={data.cantidadFisica}
+                              value={data?.cantidadFisica || ''}
                               onChange={(e) =>
                                 handlePhysicalCountChange(
-                                  product.id,
+                                  itemKey,
                                   e.target.value
                                 )
                               }
@@ -602,7 +848,7 @@ const InventoryTaking = () => {
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {data.checked && (
+                            {data?.checked && (
                               <span
                                 className={`font-medium ${
                                   data.diferencia > 0
