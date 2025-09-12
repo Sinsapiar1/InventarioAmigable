@@ -31,6 +31,8 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
   const [processingRequest, setProcessingRequest] = useState(null);
   const [isAnyProcessing, setIsAnyProcessing] = useState(false);
   const [processedRequests, setProcessedRequests] = useState(new Set());
+  const [operationDelay, setOperationDelay] = useState(false);
+  const [delayCountdown, setDelayCountdown] = useState(0);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [completedTransfers, setCompletedTransfers] = useState([]);
@@ -133,6 +135,21 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error('Error cargando traspasos completados:', error);
     }
+  };
+
+  // 🛡️ DELAY PROFESIONAL CON COUNTDOWN VISUAL
+  const enforceOperationDelay = async (seconds = 4) => {
+    setOperationDelay(true);
+    
+    for (let i = seconds; i > 0; i--) {
+      setDelayCountdown(i);
+      console.log(`⏱️ Delay de seguridad: ${i} segundos restantes...`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    setOperationDelay(false);
+    setDelayCountdown(0);
+    console.log('✅ Delay completado - Sistema listo para siguiente operación');
   };
 
   const respondToRequest = async (requestId, action) => {
@@ -343,6 +360,11 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
       }
 
       await loadTransferRequests();
+      
+      // 🛡️ DELAY DE SEGURIDAD PROFESIONAL
+      console.log('⏱️ Iniciando delay de seguridad para prevenir operaciones múltiples...');
+      await enforceOperationDelay(4); // 4 segundos de delay
+      
     } catch (error) {
       console.error('Error procesando solicitud:', error);
       
@@ -753,12 +775,42 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
             </div>
           ) : (
             <>
+              {/* Mensaje de delay de seguridad */}
+              {operationDelay && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                    <div>
+                      <h4 className="text-blue-800 font-semibold">
+                        Delay de Seguridad Activo
+                      </h4>
+                      <p className="text-blue-700 text-sm">
+                        Sistema bloqueado por {delayCountdown} segundos para prevenir operaciones duplicadas.
+                        Esta es una medida de seguridad profesional.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Solicitudes Recibidas */}
               {pendingRequests.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                    Solicitudes Recibidas ({pendingRequests.length})
-                  </h4>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900">
+                      Solicitudes Recibidas ({pendingRequests.length})
+                    </h4>
+                    
+                    {/* Feedback visual del delay de seguridad */}
+                    {operationDelay && (
+                      <div className="flex items-center space-x-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-yellow-600 border-t-transparent"></div>
+                        <span className="text-sm text-yellow-700 font-medium">
+                          Delay de seguridad: {delayCountdown}s
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   
                   <div className="space-y-4">
                     {pendingRequests.map((request) => (
@@ -896,7 +948,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                                   }
                                 }
                               }}
-                              disabled={isAnyProcessing || processedRequests.has(request.id)}
+                              disabled={isAnyProcessing || operationDelay || processedRequests.has(request.id)}
                               className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                             >
                               {processingRequest === request.id ? (
@@ -908,7 +960,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                             </button>
                             <button
                               onClick={() => respondToRequest(request.id, 'reject')}
-                              disabled={isAnyProcessing || processedRequests.has(request.id)}
+                              disabled={isAnyProcessing || operationDelay || processedRequests.has(request.id)}
                               className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                             >
                               {processingRequest === request.id ? (
