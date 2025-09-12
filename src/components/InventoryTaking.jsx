@@ -585,6 +585,10 @@ const InventoryTaking = () => {
           </div>
         </div>
       )}
+
+      {/* Controles de acción */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div></div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
           {!inventoryStarted ? (
             <button
