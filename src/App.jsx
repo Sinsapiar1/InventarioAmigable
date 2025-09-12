@@ -237,10 +237,10 @@ function AppContent() {
 
                 {/* Panel de Notificaciones */}
                 {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-40 max-h-96 overflow-y-auto">
-                    <div className="p-4 border-b border-gray-200">
+                  <div className="absolute right-0 mt-2 w-80 notification-panel rounded-lg z-40 max-h-96 overflow-y-auto">
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">Notificaciones</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
                         <div className="flex items-center space-x-3">
                           <button 
                             onClick={() => {

@@ -1235,11 +1235,11 @@ const Dashboard = () => {
 
       {/* Modal de Historial Completo */}
       {showFullHistory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+        <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
+          <div className="modal-container w-full max-w-6xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Historial Completo - {getActiveWarehouse()?.nombre}
                 </h2>
                 <div className="flex items-center space-x-3">
@@ -1252,7 +1252,7 @@ const Dashboard = () => {
                   </button>
                   <button
                     onClick={() => setShowFullHistory(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                   >
                     <X className="w-6 h-6" />
                   </button>
@@ -1266,42 +1266,42 @@ const Dashboard = () => {
                   {/* Vista Desktop */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="table-header">
                         <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">
                             Fecha
                           </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">
                             Producto
                           </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">
                             Operación
                           </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">
                             Cantidad
                           </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">
                             Origen/Destino
                           </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">
+                          <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
                             Detalles
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {fullHistory.map((movement) => {
                           const { origenDestino, usuarioInfo, detallesInteligentes } = getMovementDetails(movement);
                           
                           return (
-                            <tr key={movement.id} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                                <div className="text-xs">
+                            <tr key={movement.id} className="table-row">
+                              <td className="px-3 py-2 whitespace-nowrap text-sm">
+                                <div className="text-xs text-gray-900 dark:text-gray-100 font-medium">
                                   {movement.fecha.toLocaleDateString('es-ES', {
                                     day: '2-digit',
                                     month: '2-digit'
                                   })}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
                                   {movement.fecha.toLocaleTimeString('es-ES', {
                                     hour: '2-digit',
                                     minute: '2-digit'
@@ -1310,10 +1310,10 @@ const Dashboard = () => {
                               </td>
                               <td className="px-3 py-2">
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[120px]" title={movement.productoNombre}>
+                                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[120px]" title={movement.productoNombre}>
                                     {movement.productoNombre}
                                   </div>
-                                  <div className="text-xs text-gray-500 truncate max-w-[120px]">
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px]">
                                     {movement.productoSKU}
                                   </div>
                                 </div>

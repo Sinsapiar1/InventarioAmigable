@@ -25,7 +25,7 @@
   }
   
   .dark ::-webkit-scrollbar-track {
-    @apply bg-gray-800;
+    @apply bg-gray-900;
   }
   
   .dark ::-webkit-scrollbar-thumb {
@@ -34,6 +34,28 @@
   
   .dark ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-500;
+  }
+  
+  /* Overlay y modales elegantes */
+  .dark .modal-overlay {
+    @apply bg-black/60 backdrop-blur-sm;
+  }
+  
+  .light .modal-overlay {
+    @apply bg-black/40 backdrop-blur-sm;
+  }
+  
+  /* Mejores contrastes para texto */
+  .dark .text-primary {
+    @apply text-gray-100;
+  }
+  
+  .dark .text-secondary {
+    @apply text-gray-300;
+  }
+  
+  .dark .text-muted {
+    @apply text-gray-400;
   }
 }
 
@@ -76,12 +98,35 @@ body {
 
   .card {
     @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
-    @apply dark:bg-gray-900 dark:border-gray-700 dark:shadow-lg dark:shadow-black/10;
+    @apply dark:bg-gray-800 dark:border-gray-700/50 dark:shadow-xl dark:shadow-black/25;
   }
 
   .stat-card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200;
-    @apply dark:bg-gray-900 dark:border-gray-700 dark:hover:shadow-xl dark:hover:shadow-black/20;
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200;
+    @apply dark:bg-gray-800 dark:border-gray-700/50 dark:hover:shadow-xl dark:hover:shadow-black/30 dark:hover:border-gray-600/50;
+  }
+  
+  /* Modal profesional */
+  .modal-container {
+    @apply bg-white rounded-lg shadow-xl border border-gray-200;
+    @apply dark:bg-gray-800 dark:border-gray-700/50 dark:shadow-2xl dark:shadow-black/40;
+  }
+  
+  /* Tabla elegante */
+  .table-header {
+    @apply bg-gray-50 text-gray-500;
+    @apply dark:bg-gray-900/50 dark:text-gray-400;
+  }
+  
+  .table-row {
+    @apply bg-white hover:bg-gray-50;
+    @apply dark:bg-gray-800 dark:hover:bg-gray-700/50;
+  }
+  
+  /* Panel de notificaciones */
+  .notification-panel {
+    @apply bg-white border border-gray-200 shadow-lg;
+    @apply dark:bg-gray-800 dark:border-gray-700/50 dark:shadow-2xl dark:shadow-black/40;
   }
 }
 
