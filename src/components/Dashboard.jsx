@@ -73,12 +73,13 @@ const Dashboard = () => {
   useEffect(() => {
     if (!currentUser) return;
 
-    const interval = setInterval(() => {
-      // Solo recargar estadísticas, no todo
-      loadStats();
-    }, 30000); // Cada 30 segundos
+    // Auto-refresh deshabilitado para evitar quota exceeded
+    // const interval = setInterval(() => {
+    //   // Solo recargar estadísticas, no todo
+    //   loadStats();
+    // }, 30000); // Cada 30 segundos
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, [currentUser]);
 
   // Cargar todos los datos del dashboard

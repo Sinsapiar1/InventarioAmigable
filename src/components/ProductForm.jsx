@@ -95,14 +95,15 @@ const ProductForm = () => {
   useEffect(() => {
     if (!currentUser) return;
 
-    const interval = setInterval(() => {
-      // Solo recargar si no hay formularios abiertos (menos molesto)
-      if (!showForm && !submitting) {
-        loadProducts();
-      }
-    }, 15000); // Cada 15 segundos
+    // Auto-refresh deshabilitado para evitar quota exceeded
+    // const interval = setInterval(() => {
+    //   // Solo recargar si no hay formularios abiertos (menos molesto)
+    //   if (!showForm && !submitting) {
+    //     loadProducts();
+    //   }
+    // }, 15000); // Cada 15 segundos
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, [currentUser, showForm, submitting]);
 
   // Cargar productos desde Firestore

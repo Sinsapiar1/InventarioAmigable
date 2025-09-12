@@ -47,6 +47,8 @@ const MovementForm = () => {
   const [friends, setFriends] = useState([]);
   const [friendWarehouses, setFriendWarehouses] = useState([]);
   const [showTransferOptions, setShowTransferOptions] = useState(false);
+  const [warehousesLoaded, setWarehousesLoaded] = useState(false);
+  const [friendsLoaded, setFriendsLoaded] = useState(false);
 
   const [formData, setFormData] = useState({
     productoSKU: '',
@@ -95,12 +97,9 @@ const MovementForm = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      await Promise.all([
-        loadProducts(), 
-        loadRecentMovements(), 
-        loadWarehouses(), 
-        loadFriends()
-      ]);
+      // Cargar solo lo esencial para evitar quota exceeded
+      await loadProducts(); 
+      // loadRecentMovements(), loadWarehouses(), loadFriends() se cargan bajo demanda
     } catch (error) {
       console.error('Error cargando datos:', error);
       setError('Error al cargar los datos: ' + error.message);
@@ -110,6 +109,7 @@ const MovementForm = () => {
   };
 
   const loadWarehouses = async () => {
+    if (warehousesLoaded) return; // Evitar cargas duplicadas
     try {
       const warehousesRef = collection(db, 'usuarios', currentUser.uid, 'almacenes');
       const snapshot = await getDocs(warehousesRef);
@@ -126,6 +126,7 @@ const MovementForm = () => {
       });
       
       setWarehouses(warehousesData);
+      setWarehousesLoaded(true);
     } catch (error) {
       console.error('Error cargando almacenes:', error);
       setWarehouses([]);
@@ -133,6 +134,7 @@ const MovementForm = () => {
   };
 
   const loadFriends = async () => {
+    if (friendsLoaded) return; // Evitar cargas duplicadas
     try {
       const friendsRef = collection(db, 'amistades');
       const snapshot = await getDocs(friendsRef);
@@ -150,6 +152,7 @@ const MovementForm = () => {
       });
       
       setFriends(friendsData);
+      setFriendsLoaded(true);
     } catch (error) {
       console.error('Error cargando amigos:', error);
       setFriends([]);
@@ -254,6 +257,9 @@ const MovementForm = () => {
       // Mostrar opciones de traspaso cuando se selecciona "Traspaso a otro almacén"
       if (name === 'subTipo' && value === 'Traspaso a otro almacén') {
         setShowTransferOptions(true);
+        // Cargar datos solo cuando se necesiten
+        loadWarehouses();
+        loadFriends();
       } else if (name === 'subTipo') {
         setShowTransferOptions(false);
         newData.almacenDestino = '';
