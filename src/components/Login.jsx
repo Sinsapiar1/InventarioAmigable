@@ -116,7 +116,7 @@ const Login = () => {
           }`}>
             <Package className="w-8 h-8 text-white" />
           </div>
-          <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
             Sistema de Inventario Pro
           </h1>
           <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -159,7 +159,7 @@ const Login = () => {
             {/* Nombre completo (solo para registro) */}
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700 dark:text-gray-200'}`}>
                   Nombre Completo
                 </label>
                 <div className="relative">
@@ -179,7 +179,7 @@ const Login = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Correo Electrónico
               </label>
               <div className="relative">
@@ -198,7 +198,7 @@ const Login = () => {
 
             {/* Contraseña */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Contraseña
               </label>
               <div className="relative">
@@ -230,7 +230,7 @@ const Login = () => {
             {/* Confirmar contraseña (solo para registro) */}
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Confirmar Contraseña
                 </label>
                 <div className="relative">
@@ -281,7 +281,7 @@ const Login = () => {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Sistema profesional de gestión de inventarios
           </p>
           <div className="mt-3 pt-3 border-t border-gray-200">

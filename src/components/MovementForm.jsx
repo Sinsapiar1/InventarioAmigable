@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWarehouse } from '../contexts/WarehouseContext';
+import { useTheme } from '../contexts/ThemeContext';
 // import { sendPushNotification } from '../services/pushNotifications'; // Temporalmente deshabilitado
 import {
   collection,
@@ -34,6 +35,7 @@ import {
 const MovementForm = () => {
   const { currentUser, userProfile } = useAuth();
   const { activeWarehouse, getActiveWarehouse } = useWarehouse();
+  const { isDark } = useTheme();
   const [products, setProducts] = useState([]);
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -732,7 +734,7 @@ const MovementForm = () => {
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Movimientos de Inventario
           </h1>
           <p className="text-gray-600 mt-1">
@@ -740,7 +742,7 @@ const MovementForm = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center space-x-2">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {movements.length} movimientos registrados
           </div>
           <button
@@ -780,10 +782,10 @@ const MovementForm = () => {
 
       {/* Formulario */}
       <div className="card">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
             <ArrowUpDown className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Registrar Movimiento
             </h2>
           </div>
@@ -793,7 +795,7 @@ const MovementForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Producto */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Producto *
               </label>
               <div className="relative">
@@ -842,7 +844,7 @@ const MovementForm = () => {
 
             {/* Tipo de movimiento */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Tipo de Movimiento *
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -856,7 +858,7 @@ const MovementForm = () => {
                   className={`p-3 rounded-lg border-2 transition-colors flex items-center justify-center space-x-2 ${
                     formData.tipoMovimiento === 'entrada'
                       ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                   }`}
                   disabled={submitting}
                 >
@@ -873,7 +875,7 @@ const MovementForm = () => {
                   className={`p-3 rounded-lg border-2 transition-colors flex items-center justify-center space-x-2 ${
                     formData.tipoMovimiento === 'salida'
                       ? 'border-red-500 bg-red-50 text-red-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                   }`}
                   disabled={submitting}
                 >
@@ -885,7 +887,7 @@ const MovementForm = () => {
 
             {/* Subtipo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Tipo Específico *
               </label>
               <select
@@ -923,7 +925,7 @@ const MovementForm = () => {
                     className={`p-3 rounded-lg border-2 transition-colors text-left ${
                       formData.tipoTraspaso === 'interno'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                     }`}
                     disabled={submitting}
                   >
@@ -939,7 +941,7 @@ const MovementForm = () => {
                     className={`p-3 rounded-lg border-2 transition-colors text-left ${
                       formData.tipoTraspaso === 'externo'
                         ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                     }`}
                     disabled={submitting}
                   >
@@ -951,7 +953,7 @@ const MovementForm = () => {
                 {/* Selección de Almacén Destino */}
                 {formData.tipoTraspaso === 'interno' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       Almacén de Destino *
                     </label>
                     <select
@@ -981,7 +983,7 @@ const MovementForm = () => {
                 {formData.tipoTraspaso === 'externo' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         Colaborador Destino *
                       </label>
                       <select
@@ -1015,7 +1017,7 @@ const MovementForm = () => {
 
                     {formData.usuarioDestino && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                           Almacén de Destino *
                         </label>
                         <select
@@ -1058,7 +1060,7 @@ const MovementForm = () => {
 
             {/* Cantidad */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Cantidad *
               </label>
               <div className="relative">
@@ -1084,7 +1086,7 @@ const MovementForm = () => {
 
             {/* Número de documento */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Número de Documento
               </label>
               <div className="relative">
@@ -1103,7 +1105,7 @@ const MovementForm = () => {
 
             {/* Razón */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Razón del Movimiento *
               </label>
               <input
@@ -1120,7 +1122,7 @@ const MovementForm = () => {
 
             {/* Observaciones */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Observaciones
               </label>
               <textarea
@@ -1156,9 +1158,9 @@ const MovementForm = () => {
 
       {/* Historial */}
       <div className="card">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Historial de Movimientos ({filteredMovements.length})
             </h2>
             <div className="relative max-w-xs">
@@ -1179,41 +1181,41 @@ const MovementForm = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Fecha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Producto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Cantidad
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Stock Anterior
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Stock Nuevo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Razón
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                 {filteredMovements.map((movement) => (
                   <tr key={movement.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatDate(movement.fecha)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {movement.productoNombre}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {movement.productoSKU}
                         </div>
                       </div>
@@ -1235,17 +1237,17 @@ const MovementForm = () => {
                         {movement.subTipo}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {movement.tipoMovimiento === 'entrada' ? '+' : '-'}
                       {movement.cantidad}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {movement.cantidadAnterior}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {movement.cantidadNueva}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
                       {movement.razon}
                     </td>
                   </tr>
@@ -1256,7 +1258,7 @@ const MovementForm = () => {
         ) : (
           <div className="text-center py-12">
             <ArrowUpDown className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               {searchTerm
                 ? 'No se encontraron movimientos'
                 : 'No hay movimientos registrados'}

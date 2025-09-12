@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWarehouse } from '../contexts/WarehouseContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   collection,
   doc,
@@ -29,6 +30,7 @@ import {
 const InventoryTaking = () => {
   const { currentUser } = useAuth();
   const { activeWarehouse, warehouses, getActiveWarehouse } = useWarehouse();
+  const { isDark } = useTheme();
   const [products, setProducts] = useState([]);
   const [inventoryData, setInventoryData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -843,7 +845,7 @@ const InventoryTaking = () => {
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Toma de Inventario Físico
           </h1>
           <p className="text-gray-600 mt-1">
@@ -854,8 +856,8 @@ const InventoryTaking = () => {
 
       {/* Selector de Modo de Inventario */}
       {!inventoryStarted && (
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Configuración del Inventario
           </h2>
           
@@ -867,7 +869,7 @@ const InventoryTaking = () => {
               className={`p-4 rounded-lg border-2 transition-colors text-left ${
                 inventoryMode === 'specific'
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
               }`}
             >
               <div className="font-medium">Almacén Específico</div>
@@ -882,7 +884,7 @@ const InventoryTaking = () => {
               className={`p-4 rounded-lg border-2 transition-colors text-left ${
                 inventoryMode === 'general'
                   ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
               }`}
             >
               <div className="font-medium">Inventario General</div>
@@ -895,7 +897,7 @@ const InventoryTaking = () => {
           {/* Selector de Almacén (solo en modo específico) */}
           {inventoryMode === 'specific' && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Seleccionar Almacén
               </label>
               <select
@@ -915,7 +917,7 @@ const InventoryTaking = () => {
 
           {/* Resumen de configuración */}
           <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-gray-700 dark:text-gray-200">
               <strong>Modo:</strong> {inventoryMode === 'specific' ? 'Almacén Específico' : 'Inventario General'}
               {inventoryMode === 'specific' && selectedWarehouse && (
                 <>
@@ -1027,7 +1029,7 @@ const InventoryTaking = () => {
                 <Check className="w-6 h-6 text-green-600" />
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               de {stats.totalProducts} productos
             </p>
           </div>
@@ -1046,7 +1048,7 @@ const InventoryTaking = () => {
                 <AlertTriangle className="w-6 h-6 text-orange-600" />
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               productos con diferencias
             </p>
           </div>
@@ -1074,7 +1076,7 @@ const InventoryTaking = () => {
                 <Calculator className="w-6 h-6 text-gray-600" />
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-1">unidades netas</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">unidades netas</p>
           </div>
         </div>
       )}
@@ -1083,9 +1085,9 @@ const InventoryTaking = () => {
         <>
           {/* Panel de controles */}
           <div className="card">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Conteo de Productos ({displayItems.length})
                 </h2>
 
@@ -1108,7 +1110,7 @@ const InventoryTaking = () => {
                     className={`px-4 py-2 rounded-lg border transition-colors ${
                       showDiscrepancies
                         ? 'bg-orange-50 border-orange-200 text-orange-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                        : 'bg-gray-50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100'
                     }`}
                   >
                     Solo discrepancias
@@ -1123,32 +1125,32 @@ const InventoryTaking = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         ✓
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Producto
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         SKU
                       </th>
                       {inventoryMode === 'general' && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Almacén
                         </th>
                       )}
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Stock Sistema
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Stock Físico
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Diferencia
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                     {displayItems.map((item) => {
                       const itemKey = inventoryMode === 'specific' ? item.id : item.key;
                       const data = inventoryData[itemKey];
@@ -1171,15 +1173,15 @@ const InventoryTaking = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
                                 {inventoryMode === 'specific' ? item.nombre : item.nombre}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
                                 {inventoryMode === 'specific' ? item.categoria : 'General'}
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {inventoryMode === 'specific' ? item.sku : item.sku}
                           </td>
                           {inventoryMode === 'general' && (
@@ -1187,7 +1189,7 @@ const InventoryTaking = () => {
                               {item.almacenNombre}
                             </td>
                           )}
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                             {data?.cantidadSistema || 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1232,7 +1234,7 @@ const InventoryTaking = () => {
             ) : (
               <div className="text-center py-12">
                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">
+                <p className="text-gray-500 dark:text-gray-400">
                   {showDiscrepancies
                     ? 'No hay productos con discrepancias'
                     : 'No se encontraron productos'}
@@ -1264,7 +1266,7 @@ const InventoryTaking = () => {
         <div className="card">
           <div className="text-center py-16">
             <Clipboard className="w-16 h-16 text-gray-400 mx-auto mb-6" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
               Toma de Inventario Físico
             </h2>
             <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -1279,7 +1281,7 @@ const InventoryTaking = () => {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
                   <span className="text-blue-600 font-bold text-lg">1</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
                   Contar Productos
                 </h3>
                 <p className="text-sm text-gray-600">
@@ -1291,7 +1293,7 @@ const InventoryTaking = () => {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
                   <span className="text-blue-600 font-bold text-lg">2</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
                   Registrar Cantidades
                 </h3>
                 <p className="text-sm text-gray-600">
@@ -1303,7 +1305,7 @@ const InventoryTaking = () => {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
                   <span className="text-blue-600 font-bold text-lg">3</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
                   Ajustar Inventario
                 </h3>
                 <p className="text-sm text-gray-600">
@@ -1340,8 +1342,8 @@ const InventoryTaking = () => {
       {/* Modal de Importación */}
       {showImportModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Importar Inventario
             </h3>
             
@@ -1397,7 +1399,7 @@ const InventoryTaking = () => {
               <button
                 onClick={() => setShowImportModal(false)}
                 disabled={importing}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWarehouse } from '../contexts/WarehouseContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   collection,
   doc,
@@ -37,6 +38,7 @@ import {
 const ProductForm = () => {
   const { currentUser } = useAuth();
   const { activeWarehouse, getActiveWarehouse } = useWarehouse();
+  const { isDark } = useTheme();
   const { confirmState, closeConfirm, handleConfirm, confirmDelete } = useConfirm();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -565,7 +567,7 @@ const ProductForm = () => {
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Gestión de Productos
           </h1>
           <p className="text-gray-600 mt-1">
@@ -609,9 +611,9 @@ const ProductForm = () => {
       {/* Formulario de producto */}
       {showForm && (
         <div className="card">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
               </h2>
               <button
@@ -625,8 +627,8 @@ const ProductForm = () => {
 
           <form onSubmit={handleSubmit} className="p-4 md:p-6">
             {/* Configuración de SKU Duplicados */}
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">Configuración de SKU Duplicados</h4>
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Configuración de SKU Duplicados</h4>
               <div className="flex items-center space-x-4">
                 <label className="flex items-center">
                   <input
@@ -637,7 +639,7 @@ const ProductForm = () => {
                     onChange={(e) => setDuplicateAction(e.target.value)}
                     className="mr-2 text-blue-600"
                   />
-                  <span className="text-sm text-gray-700">Sumar al stock existente</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-200">Sumar al stock existente</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -648,10 +650,10 @@ const ProductForm = () => {
                     onChange={(e) => setDuplicateAction(e.target.value)}
                     className="mr-2 text-red-600"
                   />
-                  <span className="text-sm text-gray-700">Mostrar error</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-200">Mostrar error</span>
                 </label>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {duplicateAction === 'sum' 
                   ? 'Si el SKU ya existe, se sumará la cantidad al stock actual'
                   : 'Si el SKU ya existe, se mostrará un error'
@@ -662,7 +664,7 @@ const ProductForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* SKU */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   SKU / Código del Producto *
                 </label>
                 <div className="relative">
@@ -682,7 +684,7 @@ const ProductForm = () => {
 
               {/* Nombre */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Nombre del Producto *
                 </label>
                 <div className="relative">
@@ -702,7 +704,7 @@ const ProductForm = () => {
 
               {/* Categoría */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Categoría *
                 </label>
                 <div className="relative">
@@ -727,7 +729,7 @@ const ProductForm = () => {
 
               {/* Cantidad Actual */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Cantidad Actual
                 </label>
                   <input
@@ -756,7 +758,7 @@ const ProductForm = () => {
 
               {/* Cantidad Mínima */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Cantidad Mínima
                 </label>
                 <input
@@ -785,7 +787,7 @@ const ProductForm = () => {
 
               {/* Precio de Venta */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Precio de Venta
                 </label>
                 <div className="relative">
@@ -807,7 +809,7 @@ const ProductForm = () => {
 
               {/* Precio de Compra */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Precio de Compra
                 </label>
                 <div className="relative">
@@ -829,7 +831,7 @@ const ProductForm = () => {
 
               {/* Proveedor */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Proveedor
                 </label>
                 <input
@@ -845,7 +847,7 @@ const ProductForm = () => {
 
               {/* Ubicación Física */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Ubicación Física
                 </label>
                 <div className="relative">
@@ -864,7 +866,7 @@ const ProductForm = () => {
 
               {/* Descripción */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Descripción
                 </label>
                 <textarea
@@ -912,9 +914,9 @@ const ProductForm = () => {
 
       {/* Lista de productos */}
       <div className="card">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Productos ({filteredProducts.length})
             </h2>
 
@@ -939,37 +941,37 @@ const ProductForm = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Producto
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       SKU
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Stock
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Precio
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Acciones
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                   {filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {product.nombre}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {product.categoria}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {product.sku}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -984,12 +986,12 @@ const ProductForm = () => {
                           >
                             {product.cantidadActual || 0}
                           </span>
-                          <span className="text-xs text-gray-500 ml-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                             / {product.cantidadMinima || 5}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {formatCurrency(product.precioVenta || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -1021,14 +1023,14 @@ const ProductForm = () => {
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                         {product.nombre}
                       </h3>
-                      <p className="text-sm text-gray-500">{product.categoria}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{product.categoria}</p>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
                       <button
@@ -1050,15 +1052,15 @@ const ProductForm = () => {
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-500 font-medium">SKU</p>
-                      <p className="text-gray-900">{product.sku}</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">SKU</p>
+                      <p className="text-gray-900 dark:text-white">{product.sku}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 font-medium">Precio</p>
-                      <p className="text-gray-900">{formatCurrency(product.precioVenta || 0)}</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">Precio</p>
+                      <p className="text-gray-900 dark:text-white">{formatCurrency(product.precioVenta || 0)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 font-medium">Stock Actual</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">Stock Actual</p>
                       <p
                         className={`font-semibold ${
                           (product.cantidadActual || 0) <= (product.cantidadMinima || 5)
@@ -1070,8 +1072,8 @@ const ProductForm = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 font-medium">Stock Mínimo</p>
-                      <p className="text-gray-900">{product.cantidadMinima || 5}</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">Stock Mínimo</p>
+                      <p className="text-gray-900 dark:text-white">{product.cantidadMinima || 5}</p>
                     </div>
                   </div>
 
@@ -1090,7 +1092,7 @@ const ProductForm = () => {
         ) : (
           <div className="text-center py-12">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               {searchTerm
                 ? 'No se encontraron productos'
                 : 'No hay productos registrados'}
