@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWarehouse } from '../contexts/WarehouseContext';
-import { useTheme } from '../contexts/ThemeContext';
+// import { useTheme } from '../contexts/ThemeContext'; // Temporalmente deshabilitado
 import {
   collection,
   doc,
@@ -30,7 +30,7 @@ import {
 const InventoryTaking = () => {
   const { currentUser } = useAuth();
   const { activeWarehouse, warehouses, getActiveWarehouse } = useWarehouse();
-  const { isDark } = useTheme();
+  // const { isDark } = useTheme(); // Temporalmente deshabilitado
   const [products, setProducts] = useState([]);
   const [inventoryData, setInventoryData] = useState({});
   const [loading, setLoading] = useState(true);

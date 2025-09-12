@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWarehouse } from '../contexts/WarehouseContext';
-import { useTheme } from '../contexts/ThemeContext';
+// import { useTheme } from '../contexts/ThemeContext'; // Temporalmente deshabilitado
 import {
   collection,
   doc,
@@ -38,7 +38,7 @@ import {
 const ProductForm = () => {
   const { currentUser } = useAuth();
   const { activeWarehouse, getActiveWarehouse } = useWarehouse();
-  const { isDark } = useTheme();
+  // const { isDark } = useTheme(); // Temporalmente deshabilitado
   const { confirmState, closeConfirm, handleConfirm, confirmDelete } = useConfirm();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

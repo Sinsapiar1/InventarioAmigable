@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+// import { useTheme } from '../contexts/ThemeContext'; // Temporalmente deshabilitado
 import { 
   collection, 
   doc, 
@@ -28,7 +28,7 @@ import {
 
 const TransferRequestManager = ({ isOpen, onClose }) => {
   const { currentUser, userProfile } = useAuth();
-  const { isDark } = useTheme();
+  // const { isDark } = useTheme(); // Temporalmente deshabilitado
   const [loading, setLoading] = useState(false);
   const [processingRequest, setProcessingRequest] = useState(null);
   const [isAnyProcessing, setIsAnyProcessing] = useState(false);

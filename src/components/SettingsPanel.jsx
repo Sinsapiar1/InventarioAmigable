@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+// import { useTheme } from '../contexts/ThemeContext'; // Temporalmente deshabilitado
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
@@ -8,7 +8,8 @@ import { Settings, Save, AlertTriangle, Check, X, Building, Users, ArrowRight, S
 
 const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsManager }) => {
   const { currentUser, userProfile, loadUserProfile } = useAuth();
-  const { theme, toggleTheme, isDark } = useTheme();
+  // const { theme, toggleTheme, isDark } = useTheme(); // Temporalmente deshabilitado
+  const [isDark, setIsDark] = useState(false); // Tema simple temporal
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
@@ -228,43 +229,26 @@ const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsM
                   </label>
                   
                   <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => isDark && toggleTheme()}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                        !isDark
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
-                          : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:bg-gray-50'
-                      }`}
-                      disabled={saving}
-                    >
+                    <div className="p-4 rounded-lg border-2 border-blue-500 bg-blue-50 text-blue-700 shadow-md">
                       <div className="flex items-center space-x-3">
                         <Sun className="w-5 h-5" />
                         <div>
                           <div className="font-semibold">Modo Claro</div>
-                          <div className="text-xs opacity-75">Interfaz tradicional y brillante</div>
+                          <div className="text-xs opacity-75">Actualmente activo</div>
                         </div>
-                        {!isDark && <Check className="w-4 h-4 ml-auto" />}
+                        <Check className="w-4 h-4 ml-auto" />
                       </div>
-                    </button>
+                    </div>
                     
-                    <button
-                      onClick={() => !isDark && toggleTheme()}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                        isDark
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
-                          : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:bg-gray-50'
-                      }`}
-                      disabled={saving}
-                    >
+                    <div className="p-4 rounded-lg border-2 border-gray-300 text-gray-500">
                       <div className="flex items-center space-x-3">
                         <Moon className="w-5 h-5" />
                         <div>
                           <div className="font-semibold">Modo Oscuro</div>
-                          <div className="text-xs opacity-75">Reduce fatiga visual nocturna</div>
+                          <div className="text-xs opacity-75">Temporalmente deshabilitado</div>
                         </div>
-                        {isDark && <Check className="w-4 h-4 ml-auto" />}
                       </div>
-                    </button>
+                    </div>
                   </div>
                   
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">

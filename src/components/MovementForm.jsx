@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWarehouse } from '../contexts/WarehouseContext';
-import { useTheme } from '../contexts/ThemeContext';
+// import { useTheme } from '../contexts/ThemeContext'; // Temporalmente deshabilitado
 // import { sendPushNotification } from '../services/pushNotifications'; // Temporalmente deshabilitado
 import {
   collection,
@@ -35,7 +35,7 @@ import {
 const MovementForm = () => {
   const { currentUser, userProfile } = useAuth();
   const { activeWarehouse, getActiveWarehouse } = useWarehouse();
-  const { isDark } = useTheme();
+  // const { isDark } = useTheme(); // Temporalmente deshabilitado
   const [products, setProducts] = useState([]);
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
