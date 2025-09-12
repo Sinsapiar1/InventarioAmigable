@@ -27,7 +27,8 @@ import {
   Calendar,
   BarChart,
   Clipboard,
-  X
+  X,
+  ArrowRight
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -322,6 +323,57 @@ const Dashboard = () => {
   const handleShowFullHistory = async () => {
     setShowFullHistory(true);
     await loadFullHistory();
+  };
+
+  // Generar información inteligente de origen/destino
+  const getMovementDetails = (movement) => {
+    const { subTipo, razon, observaciones, tipoMovimiento } = movement;
+    
+    let origenDestino = '';
+    let detallesInteligentes = '';
+    
+    // Información inteligente según el tipo de movimiento
+    if (subTipo.includes('traspaso')) {
+      if (subTipo.includes('externo')) {
+        // Traspaso externo - extraer información del razón
+        if (razon.includes('→')) {
+          origenDestino = razon.split('→')[1]?.trim() || 'Colaborador';
+        } else {
+          origenDestino = 'Colaborador externo';
+        }
+        detallesInteligentes = `${subTipo} • ${razon}`;
+      } else if (subTipo.includes('interno')) {
+        origenDestino = razon.includes('desde') 
+          ? razon.split('desde ')[1]?.trim() || 'Otro almacén'
+          : 'Almacén interno';
+        detallesInteligentes = `Traspaso entre almacenes propios`;
+      } else {
+        origenDestino = 'Traspaso interno';
+        detallesInteligentes = subTipo;
+      }
+    } else if (subTipo.includes('importacion')) {
+      origenDestino = 'Importación masiva';
+      detallesInteligentes = `Creado/actualizado por import • ${observaciones || 'Sin comentarios'}`;
+    } else if (subTipo.includes('inventario')) {
+      origenDestino = 'Toma de inventario';
+      detallesInteligentes = `Ajuste físico • ${observaciones || 'Conteo manual'}`;
+    } else if (subTipo.includes('proveedor')) {
+      origenDestino = 'Proveedor';
+      detallesInteligentes = `Compra • ${observaciones || 'Sin detalles'}`;
+    } else if (subTipo.includes('cliente')) {
+      origenDestino = 'Cliente';
+      detallesInteligentes = tipoMovimiento === 'entrada' 
+        ? `Devolución de cliente • ${observaciones || ''}`
+        : `Venta a cliente • ${observaciones || ''}`;
+    } else if (subTipo.includes('ajuste')) {
+      origenDestino = 'Ajuste manual';
+      detallesInteligentes = `${tipoMovimiento === 'entrada' ? 'Corrección positiva' : 'Corrección negativa'} • ${razon}`;
+    } else {
+      origenDestino = 'Sistema';
+      detallesInteligentes = subTipo;
+    }
+    
+    return { origenDestino, detallesInteligentes };
   };
 
   // Formatear números a moneda
@@ -776,59 +828,137 @@ const Dashboard = () => {
             
             <div className="overflow-auto max-h-[70vh]">
               {fullHistory.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Fecha
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Producto
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Tipo
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Detalle
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Cantidad
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Stock
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Usuario
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Razón
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {fullHistory.map((movement) => (
-                        <tr key={movement.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {movement.fecha.toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                <>
+                  {/* Vista Desktop */}
+                  <div className="hidden lg:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Fecha
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Producto
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Operación
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Cantidad
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Stock
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Origen/Destino
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Detalles
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {fullHistory.map((movement) => {
+                          const { origenDestino, detallesInteligentes } = getMovementDetails(movement);
+                          
+                          return (
+                            <tr key={movement.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div>
+                                  {movement.fecha.toLocaleDateString('es-ES', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {movement.fecha.toLocaleTimeString('es-ES', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
+                                    {movement.productoNombre}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {movement.productoSKU}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex flex-col">
+                                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${
+                                    movement.tipoMovimiento === 'entrada' 
+                                      ? 'bg-green-100 text-green-800'
+                                      : movement.tipoMovimiento === 'salida'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-blue-100 text-blue-800'
+                                  }`}>
+                                    {movement.tipoMovimiento}
+                                  </span>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {movement.subTipo}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <span className={`font-bold ${
+                                  movement.tipoMovimiento === 'entrada' 
+                                    ? 'text-green-600'
+                                    : movement.tipoMovimiento === 'salida'
+                                    ? 'text-red-600'
+                                    : 'text-blue-600'
+                                }`}>
+                                  {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
+                                  {movement.cantidad}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div className="flex items-center space-x-1">
+                                  <span className="text-gray-500">{movement.stockAnterior}</span>
+                                  <ArrowRight className="w-3 h-3 text-gray-400" />
+                                  <span className="font-medium">{movement.stockNuevo}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {origenDestino}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {movement.creadoPor}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                                <div className="truncate" title={detallesInteligentes}>
+                                  {detallesInteligentes}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Vista Móvil */}
+                  <div className="lg:hidden space-y-4 p-4">
+                    {fullHistory.map((movement) => {
+                      const { origenDestino, detallesInteligentes } = getMovementDetails(movement);
+                      
+                      return (
+                        <div key={movement.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">
+                              <h4 className="font-medium text-gray-900 truncate max-w-[200px]">
                                 {movement.productoNombre}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                SKU: {movement.productoSKU}
-                              </div>
+                              </h4>
+                              <p className="text-sm text-gray-500">{movement.productoSKU}</p>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               movement.tipoMovimiento === 'entrada' 
                                 ? 'bg-green-100 text-green-800'
@@ -838,41 +968,60 @@ const Dashboard = () => {
                             }`}>
                               {movement.tipoMovimiento}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {movement.subTipo}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <span className={
-                              movement.tipoMovimiento === 'entrada' 
-                                ? 'text-green-600 font-medium'
-                                : movement.tipoMovimiento === 'salida'
-                                ? 'text-red-600 font-medium'
-                                : 'text-blue-600 font-medium'
-                            }>
-                              {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
-                              {movement.cantidad}
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">Cantidad</p>
+                              <p className={`font-bold ${
+                                movement.tipoMovimiento === 'entrada' 
+                                  ? 'text-green-600'
+                                  : movement.tipoMovimiento === 'salida'
+                                  ? 'text-red-600'
+                                  : 'text-blue-600'
+                              }`}>
+                                {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
+                                {movement.cantidad}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">Stock</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                {movement.stockAnterior} → {movement.stockNuevo}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-500 mb-1">Origen/Destino</p>
+                            <p className="text-sm font-medium text-gray-900">{origenDestino}</p>
+                          </div>
+                          
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-500 mb-1">Detalles</p>
+                            <p className="text-sm text-gray-700" title={detallesInteligentes}>
+                              {detallesInteligentes}
+                            </p>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t">
+                            <span>
+                              {movement.fecha.toLocaleDateString('es-ES', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })} • {movement.fecha.toLocaleTimeString('es-ES', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {movement.stockAnterior} → {movement.stockNuevo}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {movement.creadoPor}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                            {movement.razon}
-                            {movement.observaciones && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {movement.observaciones}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            <span>{movement.creadoPor}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-12">
                   <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />

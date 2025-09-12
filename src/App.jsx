@@ -22,7 +22,8 @@ import {
   Menu,
   X,
   Bell,
-  Settings
+  Settings,
+  TrendingUp
 } from 'lucide-react';
 
 // Componente principal de la aplicación
