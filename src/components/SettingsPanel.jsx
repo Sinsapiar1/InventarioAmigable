@@ -229,38 +229,40 @@ const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsM
                   
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => !isDark && toggleTheme()}
-                      className={`p-3 rounded-lg border-2 transition-colors text-left ${
+                      onClick={() => isDark && toggleTheme()}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
                         !isDark
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:bg-gray-50'
                       }`}
                       disabled={saving}
                     >
-                      <div className="flex items-center space-x-2">
-                        <Sun className="w-4 h-4" />
+                      <div className="flex items-center space-x-3">
+                        <Sun className="w-5 h-5" />
                         <div>
-                          <div className="font-medium text-sm">Modo Claro</div>
-                          <div className="text-xs opacity-75">Interfaz tradicional</div>
+                          <div className="font-semibold">Modo Claro</div>
+                          <div className="text-xs opacity-75">Interfaz tradicional y brillante</div>
                         </div>
+                        {!isDark && <Check className="w-4 h-4 ml-auto" />}
                       </div>
                     </button>
                     
                     <button
-                      onClick={() => isDark && toggleTheme()}
-                      className={`p-3 rounded-lg border-2 transition-colors text-left ${
+                      onClick={() => !isDark && toggleTheme()}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
                         isDark
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:bg-gray-50'
                       }`}
                       disabled={saving}
                     >
-                      <div className="flex items-center space-x-2">
-                        <Moon className="w-4 h-4" />
+                      <div className="flex items-center space-x-3">
+                        <Moon className="w-5 h-5" />
                         <div>
-                          <div className="font-medium text-sm">Modo Oscuro</div>
-                          <div className="text-xs opacity-75">Reduce fatiga visual</div>
+                          <div className="font-semibold">Modo Oscuro</div>
+                          <div className="text-xs opacity-75">Reduce fatiga visual nocturna</div>
                         </div>
+                        {isDark && <Check className="w-4 h-4 ml-auto" />}
                       </div>
                     </button>
                   </div>

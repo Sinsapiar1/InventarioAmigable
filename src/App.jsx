@@ -24,7 +24,9 @@ import {
   X,
   Bell,
   Settings,
-  TrendingUp
+  TrendingUp,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 // Componente principal de la aplicación
@@ -156,9 +158,9 @@ function AppContent() {
   const currentViewData = navigationItems.find(item => item.id === currentView);
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`}>
       {/* Header */}
-      <header className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm border-b sticky top-0 z-30`}>
+      <header className={`${isDark ? 'bg-gray-900/95 border-gray-800 backdrop-blur-sm' : 'bg-white/95 border-gray-200 backdrop-blur-sm'} shadow-sm border-b sticky top-0 z-30 transition-all duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo y botón móvil */}
@@ -175,7 +177,7 @@ function AppContent() {
               
               {/* Logo */}
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isDark ? 'bg-blue-500 shadow-lg shadow-blue-500/25' : 'bg-blue-600'}`}>
                   <Package className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -201,11 +203,28 @@ function AppContent() {
 
             {/* Acciones del header */}
             <div className="flex items-center space-x-2">
+              {/* Toggle de tema rápido */}
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  isDark 
+                    ? 'text-yellow-400 hover:text-yellow-300 hover:bg-gray-800' 
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`}
+                title={`Cambiar a modo ${isDark ? 'claro' : 'oscuro'}`}
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+
               {/* Notificaciones */}
               <div className="relative notifications-panel">
                 <button 
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors relative"
+                  className={`p-2 rounded-lg transition-colors relative ${
+                    isDark 
+                      ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-800' 
+                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  }`}
                   title="Notificaciones"
                 >
                   <Bell className="w-5 h-5" />
