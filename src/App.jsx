@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WarehouseProvider, useWarehouse } from './contexts/WarehouseContext';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+// import { ThemeProvider, useTheme } from './contexts/ThemeContext'; // Temporalmente deshabilitado
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import ProductForm from './components/ProductForm';
@@ -36,7 +36,8 @@ import { db } from './firebase';
 function AppContent() {
   const { currentUser, logout, userProfile } = useAuth();
   const { activeWarehouse, warehouses, getActiveWarehouse, changeActiveWarehouse } = useWarehouse();
-  const { isDark, toggleTheme } = useTheme();
+  // const { isDark, toggleTheme } = useTheme(); // Temporalmente deshabilitado
+  const [isDark, setIsDark] = useState(false); // Tema simple temporal
   const [currentView, setCurrentView] = useState('dashboard');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -116,53 +117,16 @@ function AppContent() {
   // Función para manejar logout
   const handleLogout = async () => {
     try {
-      console.log('🔓 Iniciando proceso de logout...');
+      console.log('🔓 Logout simple iniciado...');
       
-      // Cerrar todos los menús primero
-      setShowUserMenu(false);
-      setShowNotifications(false);
-      setShowSettings(false);
-      setShowQuickActions(false);
-      setShowWarehouseManager(false);
-      setShowFriendsManager(false);
-      setShowTransferManager(false);
-      setIsMobileMenuOpen(false);
-      
-      // Limpiar estados locales ANTES del logout
-      setCurrentView('dashboard');
-      setNotifications([]);
-      setMobileStats({ totalProducts: 0, lowStockAlerts: 0 });
-      
-      console.log('🧹 Estados locales limpiados');
-      
-      // Mostrar feedback inmediato
-      if (window.showInfo) {
-        window.showInfo('Cerrando sesión...');
-      }
-      
-      // Logout de Firebase
+      // Logout directo sin complicaciones
       await logout();
       
-      console.log('✅ Logout completado exitosamente');
-      
     } catch (error) {
-      console.error('❌ Error al cerrar sesión:', error);
+      console.error('❌ Error en logout:', error);
       
-      // Forzar recarga si hay error crítico
-      if (error.message.includes('auth') || error.message.includes('context')) {
-        console.log('🔄 Error crítico detectado, recargando página...');
-        window.location.reload();
-        return;
-      }
-      
-      if (window.showError) {
-        window.showError('Error al cerrar sesión. Recargando página...');
-      }
-      
-      // Fallback: recargar página después de 2 segundos
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      // Fallback: recargar página inmediatamente
+      window.location.reload();
     }
   };
 
@@ -281,7 +245,7 @@ function AppContent() {
             <div className="flex items-center space-x-2">
               {/* Toggle de tema rápido */}
               <button
-                onClick={toggleTheme}
+                onClick={() => setIsDark(!isDark)}
                 className={`p-2 rounded-lg transition-all duration-200 ${
                   isDark 
                     ? 'text-yellow-400 hover:text-yellow-300 hover:bg-gray-800' 
@@ -726,9 +690,7 @@ function App() {
   return (
     <AuthProvider>
       <WarehouseProvider>
-        <ThemeProvider>
-          <AppContent />
-        </ThemeProvider>
+        <AppContent />
       </WarehouseProvider>
     </AuthProvider>
   );

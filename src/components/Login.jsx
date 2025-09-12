@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+// import { useTheme } from '../contexts/ThemeContext'; // Temporalmente deshabilitado
 import LoadingSpinner from './LoadingSpinner';
 import {
   Package,
@@ -14,7 +14,8 @@ import {
 
 const Login = () => {
   const { login, signup } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  // const { isDark, toggleTheme } = useTheme(); // Temporalmente deshabilitado
+  const [isDark, setIsDark] = useState(false); // Tema simple temporal
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -125,7 +126,7 @@ const Login = () => {
           
           {/* Toggle de tema en login */}
           <button
-            onClick={toggleTheme}
+            onClick={() => setIsDark(!isDark)}
             className={`mt-4 p-2 rounded-lg transition-all duration-200 ${
               isDark 
                 ? 'text-yellow-400 hover:text-yellow-300 hover:bg-gray-800/50' 
