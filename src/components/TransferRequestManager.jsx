@@ -793,6 +793,26 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                 </div>
               )}
 
+              {/* Advertencia de Seguridad Profesional */}
+              {pendingRequests.length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-orange-800 font-semibold mb-2">
+                        ⚠️ Importante: Uso Responsable del Sistema
+                      </h4>
+                      <div className="text-orange-700 text-sm space-y-1">
+                        <p>• <strong>Haz clic en "Aprobar" o "Rechazar" solo UNA vez</strong></p>
+                        <p>• El sistema procesa tu solicitud en segundo plano</p>
+                        <p>• Múltiples clics pueden causar duplicaciones</p>
+                        <p>• Espera a que la operación se complete antes de realizar otra</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Solicitudes Recibidas */}
               {pendingRequests.length > 0 && (
                 <div>

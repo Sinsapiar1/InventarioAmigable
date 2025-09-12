@@ -445,22 +445,54 @@ notificaciones/{notificacionId}
 
 ## ⚠️ **PROBLEMAS CONOCIDOS Y SOLUCIONES**
 
-### **1. Email Verification (PENDIENTE):**
+### **1. Traspasos Externos - Concurrencia (LIMITACIÓN CONOCIDA):**
+**Problema:** Múltiples clics rápidos en "Aprobar" pueden causar duplicaciones
+**Causa Técnica:** Limitaciones de concurrencia en Firebase Firestore sin reglas de seguridad avanzadas
+**Solución Implementada:** 
+- Mensaje de advertencia prominente para usuarios
+- Delay de seguridad de 4 segundos entre operaciones
+- Feedback visual con countdown
+- Documentación de uso responsable
+**Recomendación:** Hacer clic solo UNA vez y esperar confirmación
+**Estado:** Funcional con precauciones de uso
+**Prioridad:** Media - No afecta funcionalidad principal
+
+### **2. Email Verification (PENDIENTE):**
 **Problema:** Firebase sendEmailVerification() causa errores
 **Estado:** Revertido, sistema funciona sin verificación
 **Solución Futura:** Implementar en ambiente separado
 
-### **2. Scroll en Campos Numéricos (SOLUCIONADO):**
+### **3. Scroll en Campos Numéricos (SOLUCIONADO):**
 **Problema:** Mouse scroll cambiaba valores accidentalmente
 **Solución:** `onWheel={(e) => e.target.blur()}`
 
-### **3. Double-click en Botones (SOLUCIONADO):**
+### **4. Double-click en Botones (SOLUCIONADO):**
 **Problema:** Doble-click causaba operaciones duplicadas
 **Solución:** Estados `loading` y `disabled` durante operaciones
 
-### **4. Índices de Firestore (SOLUCIONADO):**
+### **5. Índices de Firestore (SOLUCIONADO):**
 **Problema:** Queries complejas requerían índices
 **Solución:** Simplificación de queries + filtrado client-side
+
+---
+
+## 📋 **BUENAS PRÁCTICAS DE USO**
+
+### **Traspasos Externos:**
+- ✅ **Hacer clic solo UNA vez** en "Aprobar" o "Rechazar"
+- ✅ **Esperar confirmación** visual antes de cerrar la ventana
+- ✅ **Verificar resultado** en historial antes de realizar otra operación
+- ⚠️ **Evitar múltiples clics** para prevenir duplicaciones
+
+### **Uso Multi-dispositivo:**
+- ✅ **Un dispositivo por operación** crítica
+- ✅ **Cerrar otras pestañas** durante traspasos importantes
+- ✅ **Verificar resultado** antes de cambiar de dispositivo
+
+### **Operaciones Críticas:**
+- ✅ **Toma de inventario:** Realizar en un solo dispositivo
+- ✅ **Traspasos externos:** Usar con precaución
+- ✅ **Import masivo:** Verificar archivo antes de importar
 
 ---
 
