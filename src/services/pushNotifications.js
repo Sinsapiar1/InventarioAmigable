@@ -20,30 +20,65 @@ class PushNotificationService {
   async init() {
     try {
       // Verificar soporte del navegador
-      this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+      this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
       
       if (!this.isSupported) {
         console.log('📱 Push notifications no soportadas en este navegador');
         return;
       }
 
-      // Inicializar Firebase Messaging
-      this.messaging = getMessaging();
-      
-      // Registrar Service Worker
+      // Esperar a que el DOM esté listo
+      if (document.readyState === 'loading') {
+        await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+      }
+
+      // Registrar Service Worker PRIMERO
       await this.registerServiceWorker();
       
-      console.log('🔧 Push Notification Service inicializado');
+      // DESPUÉS inicializar Firebase Messaging
+      this.messaging = getMessaging();
+      
+      console.log('🔧 Push Notification Service inicializado correctamente');
     } catch (error) {
       console.error('❌ Error inicializando push notifications:', error);
+      this.isSupported = false;
     }
   }
 
   // Registrar Service Worker
   async registerServiceWorker() {
     try {
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-      console.log('🔧 Service Worker registrado:', registration);
+      // Verificar si ya está registrado
+      const existingRegistration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+      
+      if (existingRegistration) {
+        console.log('🔧 Service Worker ya registrado:', existingRegistration);
+        
+        // Esperar a que esté activo
+        if (existingRegistration.installing) {
+          await new Promise(resolve => {
+            existingRegistration.installing.addEventListener('statechange', () => {
+              if (existingRegistration.installing.state === 'activated') {
+                resolve();
+              }
+            });
+          });
+        }
+        
+        return existingRegistration;
+      }
+
+      // Registrar nuevo Service Worker
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/'
+      });
+      
+      console.log('🔧 Service Worker registrado exitosamente:', registration);
+      
+      // Esperar a que esté listo
+      await navigator.serviceWorker.ready;
+      console.log('✅ Service Worker listo para uso');
+      
       return registration;
     } catch (error) {
       console.error('❌ Error registrando Service Worker:', error);
@@ -85,8 +120,17 @@ class PushNotificationService {
         throw new Error('Clave VAPID no configurada. Contacta al administrador.');
       }
 
+      // Verificar que el Service Worker esté activo
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration || !registration.active) {
+        throw new Error('Service Worker no está activo. Intenta recargar la página.');
+      }
+
+      console.log('🔧 Service Worker verificado, obteniendo token...');
+
       const token = await getToken(this.messaging, {
-        vapidKey: VAPID_KEY
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration
       });
 
       if (token) {
@@ -150,24 +194,38 @@ class PushNotificationService {
   // Inicializar para un usuario específico
   async initializeForUser(userId) {
     try {
+      console.log('🔧 Iniciando configuración push para usuario:', userId);
+      
       if (!this.isSupported) {
-        console.log('📱 Push notifications no disponibles en este dispositivo');
-        return false;
+        throw new Error('Push notifications no soportadas en este navegador/dispositivo');
+      }
+
+      // Verificar que el servicio esté inicializado
+      if (!this.messaging) {
+        console.log('🔄 Reinicializando servicio...');
+        await this.init();
+        
+        if (!this.messaging) {
+          throw new Error('No se pudo inicializar Firebase Messaging');
+        }
       }
 
       // Solicitar permisos
+      console.log('🔔 Solicitando permisos...');
       const hasPermission = await this.requestPermission();
       if (!hasPermission) {
-        return false;
+        throw new Error('Permisos de notificación denegados por el usuario');
       }
 
       // Obtener token
+      console.log('🔑 Obteniendo token FCM...');
       const token = await this.getDeviceToken();
       if (!token) {
-        return false;
+        throw new Error('No se pudo obtener token FCM del dispositivo');
       }
 
       // Guardar en perfil de usuario
+      console.log('💾 Guardando token en perfil...');
       await this.saveTokenToUser(userId, token);
 
       // Configurar listener
@@ -177,7 +235,7 @@ class PushNotificationService {
       return true;
     } catch (error) {
       console.error('❌ Error configurando push notifications:', error);
-      return false;
+      throw error; // Propagar error para mejor debugging
     }
   }
 

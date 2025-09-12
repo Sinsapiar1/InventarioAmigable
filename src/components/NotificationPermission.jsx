@@ -92,9 +92,17 @@ const NotificationPermission = () => {
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                <div>
+                <div className="flex-1">
                   <p className="text-red-700 text-sm font-medium">Error</p>
                   <p className="text-red-600 text-xs mt-1">{error}</p>
+                  <div className="mt-2">
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="text-xs text-blue-600 hover:text-blue-700 underline"
+                    >
+                      🔄 Recargar página e intentar nuevamente
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
