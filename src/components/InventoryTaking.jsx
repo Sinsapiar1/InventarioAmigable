@@ -916,7 +916,7 @@ const InventoryTaking = () => {
           )}
 
           {/* Resumen de configuración */}
-          <div className="bg-gray-50 p-3 rounded-lg">
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
             <div className="text-sm text-gray-700 dark:text-gray-200">
               <strong>Modo:</strong> {inventoryMode === 'specific' ? 'Almacén Específico' : 'Inventario General'}
               {inventoryMode === 'specific' && selectedWarehouse && (
@@ -1123,7 +1123,7 @@ const InventoryTaking = () => {
             {displayItems.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="table-header">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         ✓
@@ -1160,8 +1160,8 @@ const InventoryTaking = () => {
                         <tr
                           key={itemKey}
                           className={`${
-                            data?.checked ? 'bg-green-50' : 'hover:bg-gray-50'
-                          } ${hasDiscrepancy ? 'bg-orange-50' : ''}`}
+                            data?.checked ? 'bg-green-50 dark:bg-green-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                          } ${hasDiscrepancy ? 'bg-orange-50 dark:bg-orange-900/20' : ''}`}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <input

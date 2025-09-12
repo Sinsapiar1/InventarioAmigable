@@ -637,7 +637,7 @@ const Dashboard = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">
-            <span className="font-medium text-blue-600">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
+            <span className="font-medium text-blue-600 dark:text-blue-400">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
           </p>
           <p className="text-xs text-gray-400 mt-2 hidden sm:block">
             Sistema desarrollado por <span className="font-medium text-gray-500">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
@@ -663,9 +663,9 @@ const Dashboard = () => {
 
             {/* Modal de Acciones Rápidas */}
             {showQuickActions && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Acciones Rápidas</h3>
+              <div className="absolute right-0 mt-2 w-64 notification-panel rounded-lg z-40">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Acciones Rápidas</h3>
                 </div>
                 <div className="p-4 space-y-3">
                   <button 
@@ -674,12 +674,12 @@ const Dashboard = () => {
                       // Cambiar a la vista de productos
                       window.dispatchEvent(new CustomEvent('changeView', { detail: 'products' }));
                     }}
-                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    <Package className="w-5 h-5 text-blue-600" />
+                    <Package className="w-5 h-5 text-blue-600 dark:text-blue-400 dark:text-blue-400" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Nuevo Producto</p>
-                      <p className="text-xs text-gray-500">Agregar producto al inventario</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Nuevo Producto</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Agregar producto al inventario</p>
                     </div>
                   </button>
 
@@ -688,7 +688,7 @@ const Dashboard = () => {
                       setShowQuickActions(false);
                       window.dispatchEvent(new CustomEvent('changeView', { detail: 'movements' }));
                     }}
-                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
                     <ArrowUpDown className="w-5 h-5 text-green-600" />
                     <div>
@@ -702,7 +702,7 @@ const Dashboard = () => {
                       setShowQuickActions(false);
                       window.dispatchEvent(new CustomEvent('changeView', { detail: 'inventory' }));
                     }}
-                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
                     <Clipboard className="w-5 h-5 text-purple-600" />
                     <div>
@@ -717,7 +717,7 @@ const Dashboard = () => {
                         setShowQuickActions(false);
                         handleRefresh();
                       }}
-                      className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                      className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
                       <RefreshCw className="w-5 h-5 text-gray-600" />
                       <div>
@@ -753,7 +753,7 @@ const Dashboard = () => {
               <p className="text-2xl font-bold text-gray-900">{stats.totalProductos}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Package className="w-6 h-6 text-blue-600" />
+              <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
@@ -826,7 +826,7 @@ const Dashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Productos Recientes</h3>
               <button 
                 onClick={handleShowAllProducts}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 text-sm font-medium"
               >
                 Ver todos
               </button>
@@ -856,7 +856,7 @@ const Dashboard = () => {
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500">No hay productos registrados</p>
-                <button className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <button className="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 text-sm font-medium">
                   Crear tu primer producto
                 </button>
               </div>
@@ -908,7 +908,7 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Actividad Reciente</h3>
             <button 
               onClick={handleShowFullHistory}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 text-sm font-medium"
             >
               Ver historial completo
             </button>
@@ -1027,11 +1027,11 @@ const Dashboard = () => {
 
       {/* Modal de Todos los Productos */}
       {showAllProducts && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-7xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+        <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
+          <div className="modal-container w-full max-w-7xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Todos los Productos - {getActiveWarehouse()?.nombre}
                 </h2>
                 <div className="flex items-center space-x-3">
@@ -1085,7 +1085,7 @@ const Dashboard = () => {
                           const isLowStock = product.cantidadActual <= product.cantidadMinima;
                           
                           return (
-                            <tr key={product.id} className="hover:bg-gray-50">
+                            <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                               <td className="px-4 py-3">
                                 <div>
                                   <div className="text-sm font-medium text-gray-900">
@@ -1340,7 +1340,7 @@ const Dashboard = () => {
                                     ? 'text-green-600'
                                     : movement.tipoMovimiento === 'salida'
                                     ? 'text-red-600'
-                                    : 'text-blue-600'
+                                    : 'text-blue-600 dark:text-blue-400'
                                 }`}>
                                   {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
                                   {movement.cantidad}
@@ -1409,7 +1409,7 @@ const Dashboard = () => {
                                 ? 'text-green-600'
                                 : movement.tipoMovimiento === 'salida'
                                 ? 'text-red-600'
-                                : 'text-blue-600'
+                                : 'text-blue-600 dark:text-blue-400'
                             }`}>
                               {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
                               {movement.cantidad} unidades
