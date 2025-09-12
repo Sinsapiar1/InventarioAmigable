@@ -5,6 +5,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   updateDoc,
   addDoc,
   writeBatch,
@@ -40,6 +41,8 @@ const InventoryTaking = () => {
   const [inventoryDate, setInventoryDate] = useState('');
   const [inventoryMode, setInventoryMode] = useState('specific'); // 'specific' o 'general'
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -429,18 +432,39 @@ const InventoryTaking = () => {
 
   // Exportar datos de inventario
   const exportInventoryData = () => {
-    const csvData = products.map((product) => {
-      const data = inventoryData[product.id];
-      return {
-        SKU: product.sku,
-        Nombre: product.nombre,
-        Categoria: product.categoria,
-        'Stock Sistema': data.cantidadSistema,
-        'Stock Físico': data.cantidadFisica || '',
-        Diferencia: data.diferencia,
-        Verificado: data.checked ? 'Sí' : 'No',
-      };
-    });
+    let csvData = [];
+
+    if (inventoryMode === 'specific') {
+      // Modo específico: usar products array
+      csvData = products.map((product) => {
+        const data = inventoryData[product.id];
+        return {
+          SKU: product.sku,
+          Nombre: product.nombre,
+          Categoria: product.categoria,
+          Almacen: product.almacenNombre || 'N/A',
+          'Stock Sistema': data?.cantidadSistema || 0,
+          'Stock Físico': data?.cantidadFisica || '',
+          Diferencia: data?.diferencia || 0,
+          Verificado: data?.checked ? 'Sí' : 'No',
+        };
+      });
+    } else {
+      // Modo general: usar inventoryData directamente
+      csvData = Object.keys(inventoryData).map((key) => {
+        const data = inventoryData[key];
+        return {
+          SKU: data.sku || 'Sin SKU',
+          Nombre: data.nombre || 'Sin nombre',
+          Categoria: 'General',
+          Almacen: data.almacenNombre || 'Sin almacén',
+          'Stock Sistema': data.cantidadSistema || 0,
+          'Stock Físico': data.cantidadFisica || '',
+          Diferencia: data.diferencia || 0,
+          Verificado: data.checked ? 'Sí' : 'No',
+        };
+      });
+    }
 
     const csvContent = [
       Object.keys(csvData[0]).join(','),
@@ -456,6 +480,197 @@ const InventoryTaking = () => {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+  };
+
+  // Descargar plantilla de importación
+  const downloadImportTemplate = () => {
+    const templateData = [
+      {
+        SKU: 'EJEMPLO-001',
+        Nombre: 'Producto de Ejemplo',
+        Categoria: 'Categoria Ejemplo',
+        'Stock Físico': '10',
+        Observaciones: 'Comentarios opcionales'
+      },
+      {
+        SKU: 'EJEMPLO-002', 
+        Nombre: 'Otro Producto',
+        Categoria: 'Otra Categoria',
+        'Stock Físico': '25',
+        Observaciones: ''
+      }
+    ];
+
+    const csvContent = [
+      Object.keys(templateData[0]).join(','),
+      ...templateData.map((row) => Object.values(row).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `plantilla_inventario_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  // Procesar archivo de importación
+  const handleImportFile = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setImporting(true);
+    setError('');
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      const headers = lines[0].split(',').map(h => h.trim());
+      
+      // Validar headers requeridos
+      const requiredHeaders = ['SKU', 'Stock Físico'];
+      const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+      
+      if (missingHeaders.length > 0) {
+        throw new Error(`Faltan columnas requeridas: ${missingHeaders.join(', ')}`);
+      }
+
+      const importData = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        const row = {};
+        
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+
+        if (row.SKU && row['Stock Físico']) {
+          importData.push(row);
+        }
+      }
+
+      if (importData.length === 0) {
+        throw new Error('No se encontraron datos válidos para importar');
+      }
+
+      // Procesar importación
+      await processImportData(importData);
+      
+      setSuccess(`Importación completada: ${importData.length} productos procesados`);
+      setShowImportModal(false);
+      
+      // Recargar datos
+      loadProducts();
+      
+    } catch (error) {
+      console.error('Error importing file:', error);
+      setError(`Error en importación: ${error.message}`);
+    } finally {
+      setImporting(false);
+      event.target.value = ''; // Reset file input
+    }
+  };
+
+  // Procesar datos de importación
+  const processImportData = async (importData) => {
+    const batch = writeBatch(db);
+    const movimientos = [];
+
+    for (const item of importData) {
+      const sku = item.SKU;
+      const stockFisico = parseFloat(item['Stock Físico']) || 0;
+      const observaciones = item.Observaciones || '';
+
+      // Buscar producto existente
+      let productFound = false;
+      let targetWarehouseId = inventoryMode === 'specific' ? selectedWarehouse : null;
+
+      if (inventoryMode === 'specific') {
+        // Modo específico: buscar en almacén seleccionado
+        const productRef = doc(db, 'usuarios', currentUser.uid, 'almacenes', selectedWarehouse, 'productos', sku);
+        const productDoc = await batch.get ? null : await getDoc(productRef); // Simplified for batch
+        
+        if (productDoc?.exists()) {
+          const currentStock = productDoc.data().cantidadActual || 0;
+          const diferencia = stockFisico - currentStock;
+          
+          if (diferencia !== 0) {
+            batch.update(productRef, {
+              cantidadActual: stockFisico,
+              fechaActualizacion: new Date().toISOString(),
+            });
+
+            movimientos.push({
+              usuarioId: currentUser.uid,
+              almacenId: selectedWarehouse,
+              productoSKU: sku,
+              productoNombre: productDoc.data().nombre || 'Producto',
+              tipoMovimiento: 'ajuste',
+              subTipo: 'ajuste-por-importacion',
+              cantidad: Math.abs(diferencia),
+              stockAnterior: currentStock,
+              stockNuevo: stockFisico,
+              razon: `Importación masiva - ${observaciones}`,
+              observaciones: observaciones,
+              fecha: new Date().toISOString(),
+              creadoPor: currentUser.email,
+            });
+          }
+          productFound = true;
+        }
+      } else {
+        // Modo general: buscar en todos los almacenes
+        for (const warehouse of warehouses) {
+          const productRef = doc(db, 'usuarios', currentUser.uid, 'almacenes', warehouse.id, 'productos', sku);
+          const productDoc = await getDoc(productRef);
+          
+          if (productDoc.exists()) {
+            const currentStock = productDoc.data().cantidadActual || 0;
+            const diferencia = stockFisico - currentStock;
+            
+            if (diferencia !== 0) {
+              batch.update(productRef, {
+                cantidadActual: stockFisico,
+                fechaActualizacion: new Date().toISOString(),
+              });
+
+              movimientos.push({
+                usuarioId: currentUser.uid,
+                almacenId: warehouse.id,
+                productoSKU: sku,
+                productoNombre: productDoc.data().nombre || 'Producto',
+                tipoMovimiento: 'ajuste',
+                subTipo: 'ajuste-por-importacion',
+                cantidad: Math.abs(diferencia),
+                stockAnterior: currentStock,
+                stockNuevo: stockFisico,
+                razon: `Importación masiva - ${observaciones}`,
+                observaciones: observaciones,
+                fecha: new Date().toISOString(),
+                creadoPor: currentUser.email,
+              });
+            }
+            productFound = true;
+            break; // Solo actualizar el primer almacén que tenga el producto
+          }
+        }
+      }
+
+      if (!productFound) {
+        console.warn(`Producto con SKU ${sku} no encontrado`);
+      }
+    }
+
+    // Ejecutar batch de actualizaciones
+    await batch.commit();
+
+    // Crear movimientos
+    for (const movimiento of movimientos) {
+      await addDoc(collection(db, 'movimientos'), movimiento);
+    }
   };
 
   // Crear estructura de datos para renderizado
@@ -640,6 +855,13 @@ const InventoryTaking = () => {
               >
                 <Download className="w-4 h-4" />
                 <span>Exportar</span>
+              </button>
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="btn-secondary flex items-center space-x-2"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Importar</span>
               </button>
               <button
                 onClick={cancelInventory}
@@ -1010,6 +1232,74 @@ const InventoryTaking = () => {
               <Clipboard className="w-5 h-5" />
               <span>Iniciar Toma de Inventario</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Importación */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Importar Inventario
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Importa cantidades de inventario desde un archivo CSV. 
+                  Solo se actualizarán productos existentes.
+                </p>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-start">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800">
+                        Importante
+                      </p>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        Esta acción actualizará el stock de los productos y creará movimientos de ajuste.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  onClick={downloadImportTemplate}
+                  className="w-full btn-secondary flex items-center justify-center space-x-2 mb-3"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Descargar Plantilla CSV</span>
+                </button>
+                
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleImportFile}
+                  disabled={importing}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                />
+              </div>
+
+              {importing && (
+                <div className="flex items-center justify-center py-3">
+                  <LoadingSpinner size="sm" text="Procesando importación..." />
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowImportModal(false)}
+                disabled={importing}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
