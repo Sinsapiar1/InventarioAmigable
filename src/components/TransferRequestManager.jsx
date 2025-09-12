@@ -29,6 +29,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
   const { currentUser, userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [processingRequest, setProcessingRequest] = useState(null);
+  const [globalProcessing, setGlobalProcessing] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [completedTransfers, setCompletedTransfers] = useState([]);
@@ -134,18 +135,19 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
   };
 
   const respondToRequest = async (requestId, action) => {
-    // Prevenir múltiples clics verificando si ya se está procesando
-    if (processingRequest === requestId) {
-      console.log('⚠️ Solicitud ya en procesamiento, ignorando clic adicional');
+    // 🛡️ BLOQUEO GLOBAL INMEDIATO - TÉCNICA NIVEL BANCARIO
+    if (globalProcessing || processingRequest) {
+      console.log('🚫 OPERACIÓN BLOQUEADA: Sistema ya procesando');
       return;
     }
 
     try {
-      // Prevenir doble clic específico para esta solicitud
+      // ⚡ ACTIVAR BLOQUEO GLOBAL INSTANTÁNEO
+      setGlobalProcessing(true);
       setProcessingRequest(requestId);
-      console.log('🚀 Iniciando procesamiento de solicitud:', requestId, action);
+      console.log('🔒 SISTEMA COMPLETAMENTE BLOQUEADO - Procesando:', requestId, action);
 
-      // Optimistic update: remover de pendientes inmediatamente
+      // ⚡ REMOVER DE UI INMEDIATAMENTE (Optimistic Update)
       setPendingRequests(prev => prev.filter(req => req.id !== requestId));
       const requestRef = doc(db, 'solicitudes-traspaso', requestId);
       const requestDoc = await getDoc(requestRef);
@@ -353,7 +355,10 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
         window.showError('Error al procesar la solicitud: ' + error.message);
       }
     } finally {
+      // 🔓 DESBLOQUEAR SISTEMA COMPLETAMENTE
+      setGlobalProcessing(false);
       setProcessingRequest(null);
+      console.log('🔓 SISTEMA DESBLOQUEADO - Operación completada');
     }
   };
 
@@ -890,7 +895,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                                   }
                                 }
                               }}
-                              disabled={processingRequest === request.id}
+                              disabled={globalProcessing || processingRequest === request.id}
                               className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                             >
                               {processingRequest === request.id ? (
@@ -902,7 +907,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                             </button>
                             <button
                               onClick={() => respondToRequest(request.id, 'reject')}
-                              disabled={processingRequest === request.id}
+                              disabled={globalProcessing || processingRequest === request.id}
                               className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                             >
                               {processingRequest === request.id ? (
