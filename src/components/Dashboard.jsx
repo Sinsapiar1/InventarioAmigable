@@ -294,17 +294,45 @@ const Dashboard = () => {
     if (!currentUser || !activeWarehouse) return;
 
     try {
+      // Cargar movimientos
       const movimientosRef = collection(db, 'movimientos');
       const snapshot = await getDocs(movimientosRef);
+      
+      // Cargar solicitudes de traspaso para obtener información adicional
+      const solicitudesRef = collection(db, 'solicitudes-traspaso');
+      const solicitudesSnapshot = await getDocs(solicitudesRef);
+      
+      // Crear mapa de solicitudes por producto y fecha para enriquecer información
+      const solicitudesMap = new Map();
+      solicitudesSnapshot.forEach((doc) => {
+        const solicitud = doc.data();
+        if (solicitud.usuarioDestinoId === currentUser.uid) {
+          const key = `${solicitud.productoSKU}_${solicitud.cantidad}`;
+          solicitudesMap.set(key, solicitud);
+        }
+      });
       
       const movimientos = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
         // Filtrar por usuario y almacén activo
         if (data.usuarioId === currentUser.uid && data.almacenId === activeWarehouse) {
+          let enrichedData = { ...data };
+          
+          // Enriquecer traspasos externos con información de solicitud
+          if (data.subTipo === 'Traspaso externo aprobado' && data.tipoMovimiento === 'entrada') {
+            const key = `${data.productoSKU}_${data.cantidad}`;
+            const solicitud = solicitudesMap.get(key);
+            if (solicitud) {
+              enrichedData.usuarioOrigenNombre = solicitud.usuarioOrigenNombre;
+              enrichedData.usuarioOrigenEmail = solicitud.usuarioOrigenEmail;
+              enrichedData.almacenOrigenNombre = solicitud.almacenOrigenNombre;
+            }
+          }
+          
           movimientos.push({
             id: doc.id,
-            ...data,
+            ...enrichedData,
             fecha: data.fecha ? new Date(data.fecha) : new Date()
           });
         }
@@ -327,7 +355,7 @@ const Dashboard = () => {
 
   // Generar información inteligente de origen/destino
   const getMovementDetails = (movement) => {
-    const { subTipo, razon, observaciones, tipoMovimiento, creadoPor } = movement;
+    const { subTipo, razon, observaciones, tipoMovimiento, creadoPor, usuarioOrigenNombre, usuarioOrigenEmail, almacenOrigenNombre } = movement;
     
     let origenDestino = '';
     let usuarioInfo = '';
@@ -336,29 +364,43 @@ const Dashboard = () => {
     // Información inteligente según el tipo de movimiento
     if (subTipo.includes('traspaso') || subTipo.includes('Traspaso')) {
       if (subTipo.includes('externo')) {
-        // Traspaso externo - extraer información del razón
+        // Traspaso externo - extraer información específica
         if (tipoMovimiento === 'entrada') {
           // Si es entrada, alguien me envió algo
-          if (razon.includes('→')) {
-            const partes = razon.split('→');
-            origenDestino = `De: ${partes[0]?.trim() || 'Colaborador'}`;
-            usuarioInfo = 'Traspaso recibido';
+          let usuarioOrigen = 'Colaborador';
+          let almacenOrigen = '';
+          
+          // Usar información enriquecida si está disponible
+          if (usuarioOrigenNombre) {
+            usuarioOrigen = usuarioOrigenNombre;
+            almacenOrigen = almacenOrigenNombre ? ` (${almacenOrigenNombre})` : '';
           } else {
-            origenDestino = 'De: Colaborador';
-            usuarioInfo = 'Traspaso recibido';
+            // Fallback: intentar extraer desde otros campos
+            if (observaciones && observaciones.trim()) {
+              usuarioOrigen = observaciones.trim();
+            } else if (razon && razon.includes('→')) {
+              const partes = razon.split('→');
+              usuarioOrigen = partes[0]?.trim() || 'Colaborador';
+            }
           }
-          detallesInteligentes = `Recibido de colaborador • ${observaciones || 'Traspaso externo'}`;
+          
+          origenDestino = `De: ${usuarioOrigen}${almacenOrigen}`;
+          usuarioInfo = usuarioOrigenEmail ? `Email: ${usuarioOrigenEmail}` : 'Traspaso aprobado';
+          detallesInteligentes = `Recibido de ${usuarioOrigen} • Traspaso externo aprobado`;
         } else {
           // Si es salida, yo envié algo
-          if (razon.includes('→')) {
+          let usuarioDestino = 'Colaborador';
+          
+          if (observaciones && observaciones.trim()) {
+            usuarioDestino = observaciones.trim();
+          } else if (razon && razon.includes('→')) {
             const partes = razon.split('→');
-            origenDestino = `Para: ${partes[1]?.trim() || 'Colaborador'}`;
-            usuarioInfo = `Enviado por: ${creadoPor}`;
-          } else {
-            origenDestino = 'Para: Colaborador';
-            usuarioInfo = `Enviado por: ${creadoPor}`;
+            usuarioDestino = partes[1]?.trim() || 'Colaborador';
           }
-          detallesInteligentes = `Enviado a colaborador • ${observaciones || 'Traspaso externo'}`;
+          
+          origenDestino = `Para: ${usuarioDestino}`;
+          usuarioInfo = `Enviado por: ${creadoPor}`;
+          detallesInteligentes = `Enviado a ${usuarioDestino} • ${razon || 'Traspaso externo'}`;
         }
       } else if (subTipo.includes('interno')) {
         if (tipoMovimiento === 'entrada') {
@@ -962,11 +1004,15 @@ const Dashboard = () => {
                                 </span>
                               </td>
                               <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
-                                <div className="flex items-center space-x-1">
-                                  <span className="text-gray-500 text-xs">{movement.stockAnterior}</span>
-                                  <ArrowRight className="w-3 h-3 text-gray-400" />
-                                  <span className="font-medium text-xs">{movement.stockNuevo}</span>
-                                </div>
+                                {movement.stockAnterior !== undefined && movement.stockNuevo !== undefined ? (
+                                  <div className="flex items-center space-x-1">
+                                    <span className="text-gray-500 text-xs">{movement.stockAnterior}</span>
+                                    <ArrowRight className="w-3 h-3 text-gray-400" />
+                                    <span className="font-medium text-xs">{movement.stockNuevo}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-gray-400">N/A</span>
+                                )}
                               </td>
                               <td className="px-3 py-2">
                                 <div>
@@ -1031,9 +1077,13 @@ const Dashboard = () => {
                             </div>
                             <div>
                               <p className="text-xs text-gray-500 mb-1">Stock</p>
-                              <p className="text-sm font-medium text-gray-900">
-                                {movement.stockAnterior} → {movement.stockNuevo}
-                              </p>
+                              {movement.stockAnterior !== undefined && movement.stockNuevo !== undefined ? (
+                                <p className="text-sm font-medium text-gray-900">
+                                  {movement.stockAnterior} → {movement.stockNuevo}
+                                </p>
+                              ) : (
+                                <p className="text-sm text-gray-400">N/A</p>
+                              )}
                             </div>
                           </div>
                           
