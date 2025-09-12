@@ -53,14 +53,14 @@ const ConfirmDialog = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-auto">
         {/* Header */}
         <div className="flex items-center p-6 pb-4">
           <div className="flex-shrink-0">
             {getIcon()}
           </div>
           <div className="ml-4 flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               {title}
             </h3>
           </div>

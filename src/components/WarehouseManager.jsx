@@ -210,16 +210,16 @@ const WarehouseManager = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="settings-modal bg-white rounded-lg shadow-xl max-w-4xl w-full mx-auto max-h-[90vh] overflow-y-auto">
+      <div className="settings-modal bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-auto max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Building className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Gestión de Almacenes
                 </h3>
                 <p className="text-sm text-gray-600">
@@ -260,7 +260,7 @@ const WarehouseManager = ({ isOpen, onClose }) => {
           {showForm && (
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-gray-900">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {editingWarehouse ? 'Editar Almacén' : 'Nuevo Almacén'}
                 </h4>
                 <button
@@ -363,7 +363,7 @@ const WarehouseManager = ({ isOpen, onClose }) => {
 
           {/* Lista de Almacenes */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Almacenes ({warehouses.length})
             </h4>
 
@@ -379,7 +379,7 @@ const WarehouseManager = ({ isOpen, onClose }) => {
                     className={`p-4 rounded-lg border-2 transition-colors ${
                       warehouse.activo 
                         ? 'border-green-200 bg-green-50' 
-                        : 'border-gray-200 bg-gray-50'
+                        : 'border-gray-200 dark:border-gray-700 bg-gray-50'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -392,7 +392,7 @@ const WarehouseManager = ({ isOpen, onClose }) => {
                           }`} />
                         </div>
                         <div>
-                          <h5 className="font-semibold text-gray-900">
+                          <h5 className="font-semibold text-gray-900 dark:text-white">
                             {warehouse.nombre}
                             {warehouse.id === 'principal' && (
                               <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">

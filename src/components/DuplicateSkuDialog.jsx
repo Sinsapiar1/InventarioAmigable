@@ -14,7 +14,7 @@ const DuplicateSkuDialog = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-auto">
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
@@ -22,7 +22,7 @@ const DuplicateSkuDialog = ({
               <Package className="w-5 h-5 text-orange-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 SKU Duplicado Detectado
               </h3>
               <p className="text-sm text-gray-600">
@@ -51,7 +51,7 @@ const DuplicateSkuDialog = ({
             <div className="flex items-center justify-center space-x-4 text-sm">
               <div className="text-center">
                 <p className="text-gray-600">Stock Actual</p>
-                <p className="text-xl font-bold text-gray-900">{cantidadExistente}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{cantidadExistente}</p>
               </div>
               <Plus className="w-5 h-5 text-blue-600" />
               <div className="text-center">

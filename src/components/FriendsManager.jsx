@@ -259,16 +259,16 @@ const FriendsManager = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="settings-modal bg-white rounded-lg shadow-xl max-w-4xl w-full mx-auto max-h-[90vh] overflow-y-auto">
+      <div className="settings-modal bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-auto max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <Users className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Sistema de Colaboradores
                 </h3>
                 <p className="text-sm text-gray-600">
@@ -347,7 +347,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
           {/* Solicitudes Pendientes */}
           {pendingRequests.length > 0 && (
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Solicitudes Recibidas ({pendingRequests.length})
               </h4>
               
@@ -360,7 +360,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
                           <Users className="w-5 h-5 text-yellow-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{request.usuarioNombre}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{request.usuarioNombre}</p>
                           <p className="text-sm text-gray-600">{request.usuarioEmail}</p>
                           <p className="text-xs text-gray-500">
                             {new Date(request.fechaCreacion).toLocaleDateString('es-ES')}
@@ -393,7 +393,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
 
           {/* Colaboradores Confirmados */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Colaboradores Confirmados ({friends.length})
             </h4>
             
@@ -416,7 +416,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
                           <Users className="w-5 h-5 text-green-600" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">{friendData.nombre}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{friendData.nombre}</p>
                           <p className="text-sm text-gray-600">{friendData.email}</p>
                           <p className="text-xs text-green-600 font-medium">
                             ✅ Colaboración activa
@@ -451,7 +451,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
           {/* Solicitudes Enviadas */}
           {sentRequests.length > 0 && (
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Solicitudes Enviadas ({sentRequests.length})
               </h4>
               
@@ -463,7 +463,7 @@ const FriendsManager = ({ isOpen, onClose }) => {
                         <Clock className="w-4 h-4 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{request.amigoNombre}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{request.amigoNombre}</p>
                         <p className="text-sm text-gray-600">{request.amigoEmail}</p>
                         <p className="text-xs text-blue-600">Solicitud pendiente de respuesta</p>
                       </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   collection, 
   doc, 
@@ -27,6 +28,7 @@ import {
 
 const TransferRequestManager = ({ isOpen, onClose }) => {
   const { currentUser, userProfile } = useAuth();
+  const { isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [processingRequest, setProcessingRequest] = useState(null);
   const [isAnyProcessing, setIsAnyProcessing] = useState(false);
@@ -741,16 +743,16 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="settings-modal bg-white rounded-lg shadow-xl max-w-4xl w-full mx-auto max-h-[90vh] overflow-y-auto">
+      <div className="settings-modal bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-auto max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                 <Truck className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Gestión de Traspasos
                 </h3>
                 <p className="text-sm text-gray-600">
@@ -817,7 +819,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
               {pendingRequests.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-semibold text-gray-900">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Solicitudes Recibidas ({pendingRequests.length})
                     </h4>
                     
@@ -840,7 +842,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                             <div className="flex items-center space-x-3 mb-3">
                               <Package className="w-5 h-5 text-orange-600" />
                               <div>
-                                <h5 className="font-semibold text-gray-900">{request.productoNombre}</h5>
+                                <h5 className="font-semibold text-gray-900 dark:text-white">{request.productoNombre}</h5>
                                 <p className="text-sm text-gray-600">SKU: {request.productoSKU}</p>
                               </div>
                               <div className="text-right">
@@ -863,7 +865,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                             </div>
 
                             <div className="bg-gray-50 rounded p-2 mb-3">
-                              <p className="text-sm text-gray-700">
+                              <p className="text-sm text-gray-700 dark:text-gray-200">
                                 <strong>Razón:</strong> {request.razon}
                               </p>
                             </div>
@@ -1001,7 +1003,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
               {/* Solicitudes Enviadas */}
               {sentRequests.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Solicitudes Enviadas ({sentRequests.length})
                   </h4>
                   
@@ -1011,7 +1013,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                         <div className="flex items-center space-x-3">
                           <Clock className="w-5 h-5 text-blue-600" />
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-gray-900 dark:text-white">
                               {request.cantidad} {request.productoNombre}
                             </p>
                             <p className="text-sm text-gray-600">
@@ -1034,7 +1036,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
               {/* Traspasos Completados */}
               {completedTransfers.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Historial de Traspasos ({completedTransfers.length})
                   </h4>
                   
@@ -1047,7 +1049,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                       }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-gray-900 dark:text-white">
                               {transfer.cantidad} {transfer.productoNombre}
                             </p>
                             <p className="text-sm text-gray-600">
