@@ -5,8 +5,8 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
-// Clave web de FCM (se configurará después)
-const VAPID_KEY = 'TU_CLAVE_VAPID_AQUI'; // Se reemplazará con la clave real
+// Clave web de FCM - Se configurará con la clave de Firebase Console
+const VAPID_KEY = process.env.REACT_APP_VAPID_KEY || 'PENDIENTE_CONFIGURACION';
 
 class PushNotificationService {
   constructor() {
@@ -79,6 +79,10 @@ class PushNotificationService {
     try {
       if (!this.messaging) {
         throw new Error('Messaging no inicializado');
+      }
+
+      if (VAPID_KEY === 'PENDIENTE_CONFIGURACION') {
+        throw new Error('Clave VAPID no configurada. Contacta al administrador.');
       }
 
       const token = await getToken(this.messaging, {
