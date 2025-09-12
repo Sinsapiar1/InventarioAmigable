@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import LoadingSpinner from './LoadingSpinner';
 import {
   Package,
@@ -13,6 +14,7 @@ import {
 
 const Login = () => {
   const { login, signup } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -101,29 +103,56 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-300 ${
+      isDark 
+        ? 'bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950' 
+        : 'bg-gradient-to-br from-blue-50 via-white to-blue-50'
+    }`}>
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 transition-colors ${
+            isDark ? 'bg-blue-500 shadow-lg shadow-blue-500/25' : 'bg-blue-600'
+          }`}>
             <Package className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Sistema de Inventario Pro
           </h1>
-          <p className="text-gray-600">
+          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
             {isLogin ? 'Inicia sesión en tu cuenta' : 'Crea tu cuenta nueva'}
           </p>
+          
+          {/* Toggle de tema en login */}
+          <button
+            onClick={toggleTheme}
+            className={`mt-4 p-2 rounded-lg transition-all duration-200 ${
+              isDark 
+                ? 'text-yellow-400 hover:text-yellow-300 hover:bg-gray-800/50' 
+                : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'
+            }`}
+            title={`Cambiar a modo ${isDark ? 'claro' : 'oscuro'}`}
+          >
+            {isDark ? '☀️' : '🌙'}
+          </button>
         </div>
 
         {/* Formulario */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <div className={`rounded-2xl shadow-xl p-8 transition-colors ${
+          isDark 
+            ? 'bg-gray-800 border border-gray-700/50 shadow-black/40' 
+            : 'bg-white border border-gray-100'
+        }`}>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Mensaje de error */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                <p className="text-red-700 text-sm">{error}</p>
+              <div className={`rounded-lg p-4 flex items-center space-x-3 ${
+                isDark 
+                  ? 'bg-red-900/20 border border-red-800/50' 
+                  : 'bg-red-50 border border-red-200'
+              }`}>
+                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                <p className={`text-sm ${isDark ? 'text-red-300' : 'text-red-700'}`}>{error}</p>
               </div>
             )}
 
