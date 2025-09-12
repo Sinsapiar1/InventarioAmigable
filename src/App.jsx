@@ -116,28 +116,53 @@ function AppContent() {
   // Función para manejar logout
   const handleLogout = async () => {
     try {
+      console.log('🔓 Iniciando proceso de logout...');
+      
       // Cerrar todos los menús primero
       setShowUserMenu(false);
       setShowNotifications(false);
       setShowSettings(false);
+      setShowQuickActions(false);
+      setShowWarehouseManager(false);
+      setShowFriendsManager(false);
+      setShowTransferManager(false);
+      setIsMobileMenuOpen(false);
+      
+      // Limpiar estados locales ANTES del logout
+      setCurrentView('dashboard');
+      setNotifications([]);
+      setMobileStats({ totalProducts: 0, lowStockAlerts: 0 });
+      
+      console.log('🧹 Estados locales limpiados');
       
       // Mostrar feedback inmediato
       if (window.showInfo) {
         window.showInfo('Cerrando sesión...');
       }
       
+      // Logout de Firebase
       await logout();
       
-      // Limpiar estados locales
-      setCurrentView('dashboard');
-      setNotifications([]);
+      console.log('✅ Logout completado exitosamente');
       
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+      console.error('❌ Error al cerrar sesión:', error);
+      
+      // Forzar recarga si hay error crítico
+      if (error.message.includes('auth') || error.message.includes('context')) {
+        console.log('🔄 Error crítico detectado, recargando página...');
+        window.location.reload();
+        return;
+      }
       
       if (window.showError) {
-        window.showError('Error al cerrar sesión. Intenta nuevamente.');
+        window.showError('Error al cerrar sesión. Recargando página...');
       }
+      
+      // Fallback: recargar página después de 2 segundos
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     }
   };
 

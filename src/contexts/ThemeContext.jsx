@@ -21,7 +21,9 @@ export const ThemeProvider = ({ children }) => {
 
   // Cargar tema del usuario al iniciar
   useEffect(() => {
-    loadUserTheme();
+    if (currentUser !== undefined) { // Esperar a que currentUser esté definido
+      loadUserTheme();
+    }
   }, [currentUser]);
 
   // Aplicar tema al documento
