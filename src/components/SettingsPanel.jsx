@@ -9,7 +9,30 @@ import { Settings, Save, AlertTriangle, Check, X, Building, Users, ArrowRight, S
 const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsManager }) => {
   const { currentUser, userProfile, loadUserProfile } = useAuth();
   // const { theme, toggleTheme, isDark } = useTheme(); // Temporalmente deshabilitado
-  const [isDark, setIsDark] = useState(false); // Tema simple temporal
+  const [isDark, setIsDark] = useState(() => {
+    // Leer tema actual del DOM
+    return document.documentElement.classList.contains('dark');
+  });
+
+  // Función simple para cambiar tema
+  const toggleThemeLocal = (newTheme) => {
+    const root = document.documentElement;
+    
+    if (newTheme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    }
+    
+    setIsDark(newTheme === 'dark');
+    localStorage.setItem('inventario-theme', newTheme);
+    
+    if (window.showSuccess) {
+      window.showSuccess(`🎨 Tema cambiado a ${newTheme === 'dark' ? 'oscuro' : 'claro'}`);
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
