@@ -29,7 +29,8 @@ import {
   Clipboard,
   X,
   ArrowRight,
-  Download
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -52,6 +53,8 @@ const Dashboard = () => {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [fullHistory, setFullHistory] = useState([]);
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [allProducts, setAllProducts] = useState([]);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -352,6 +355,79 @@ const Dashboard = () => {
   const handleShowFullHistory = async () => {
     setShowFullHistory(true);
     await loadFullHistory();
+  };
+
+  // Cargar todos los productos del almacén activo
+  const loadAllProducts = async () => {
+    if (!currentUser || !activeWarehouse) return;
+
+    try {
+      const productosRef = collection(
+        db,
+        'usuarios',
+        currentUser.uid,
+        'almacenes',
+        activeWarehouse,
+        'productos'
+      );
+      const snapshot = await getDocs(productosRef);
+
+      const productos = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        productos.push({
+          id: doc.id,
+          ...data,
+          fechaCreacion: data.fechaCreacion ? new Date(data.fechaCreacion) : new Date(),
+          fechaActualizacion: data.fechaActualizacion ? new Date(data.fechaActualizacion) : new Date()
+        });
+      });
+
+      // Ordenar por fecha de creación (más recientes primero)
+      productos.sort((a, b) => b.fechaCreacion - a.fechaCreacion);
+      
+      setAllProducts(productos);
+    } catch (error) {
+      console.error('Error cargando todos los productos:', error);
+    }
+  };
+
+  // Función para mostrar todos los productos
+  const handleShowAllProducts = async () => {
+    setShowAllProducts(true);
+    await loadAllProducts();
+  };
+
+  // Exportar todos los productos
+  const exportAllProducts = () => {
+    const csvData = allProducts.map((product) => ({
+      SKU: product.sku,
+      Nombre: product.nombre,
+      Categoria: product.categoria,
+      StockActual: product.cantidadActual,
+      StockMinimo: product.cantidadMinima,
+      PrecioCompra: product.precioCompra || 0,
+      PrecioVenta: product.precioVenta || 0,
+      FechaCreacion: product.fechaCreacion.toLocaleDateString('es-ES'),
+      UltimaActualizacion: product.fechaActualizacion.toLocaleDateString('es-ES'),
+      Almacen: getActiveWarehouse()?.nombre || 'N/A',
+      CreadoPor: product.creadoPor || 'N/A'
+    }));
+
+    const csvContent = [
+      Object.keys(csvData[0]).join(','),
+      ...csvData.map((row) => Object.values(row).map(val => `"${val}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `productos_${getActiveWarehouse()?.nombre.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   // Exportar historial completo
@@ -745,7 +821,10 @@ const Dashboard = () => {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Productos Recientes</h3>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <button 
+                onClick={handleShowAllProducts}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
                 Ver todos
               </button>
             </div>
@@ -942,6 +1021,214 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de Todos los Productos */}
+      {showAllProducts && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-7xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Todos los Productos - {getActiveWarehouse()?.nombre}
+                </h2>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={exportAllProducts}
+                    className="btn-secondary flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Exportar</span>
+                  </button>
+                  <button
+                    onClick={() => setShowAllProducts(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="overflow-auto max-h-[70vh]">
+              {allProducts.length > 0 ? (
+                <>
+                  {/* Vista Desktop */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Producto
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            SKU
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Stock
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Precios
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                            Fechas
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Estado
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {allProducts.map((product) => {
+                          const isLowStock = product.cantidadActual <= product.cantidadMinima;
+                          
+                          return (
+                            <tr key={product.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {product.nombre}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {product.categoria}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-900 font-mono">
+                                {product.sku}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center space-x-2">
+                                  <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>
+                                    {product.cantidadActual}
+                                  </span>
+                                  <span className="text-gray-400">/</span>
+                                  <span className="text-sm text-gray-500">
+                                    {product.cantidadMinima}
+                                  </span>
+                                  {isLowStock && (
+                                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm">
+                                  <div className="text-green-600 font-medium">
+                                    ${product.precioVenta || 0}
+                                  </div>
+                                  <div className="text-gray-500 text-xs">
+                                    Compra: ${product.precioCompra || 0}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
+                                <div>
+                                  <div className="text-xs">
+                                    Creado: {product.fechaCreacion.toLocaleDateString('es-ES')}
+                                  </div>
+                                  <div className="text-xs">
+                                    Actualizado: {product.fechaActualizacion.toLocaleDateString('es-ES')}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  isLowStock 
+                                    ? 'bg-red-100 text-red-800'
+                                    : product.cantidadActual === 0
+                                    ? 'bg-gray-100 text-gray-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {isLowStock ? 'Stock Bajo' : product.cantidadActual === 0 ? 'Sin Stock' : 'Disponible'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Vista Móvil */}
+                  <div className="md:hidden space-y-4 p-4">
+                    {allProducts.map((product) => {
+                      const isLowStock = product.cantidadActual <= product.cantidadMinima;
+                      
+                      return (
+                        <div key={product.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-medium text-gray-900">
+                                {product.nombre}
+                              </h4>
+                              <p className="text-sm text-gray-500">{product.categoria}</p>
+                              <p className="text-xs text-gray-400 font-mono mt-1">{product.sku}</p>
+                            </div>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              isLowStock 
+                                ? 'bg-red-100 text-red-800'
+                                : product.cantidadActual === 0
+                                ? 'bg-gray-100 text-gray-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {isLowStock ? 'Stock Bajo' : product.cantidadActual === 0 ? 'Sin Stock' : 'Disponible'}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">Stock Actual</p>
+                              <p className={`font-bold text-lg ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>
+                                {product.cantidadActual}
+                              </p>
+                              <p className="text-xs text-gray-500">Mínimo: {product.cantidadMinima}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">Precio Venta</p>
+                              <p className="font-bold text-lg text-green-600">
+                                ${product.precioVenta || 0}
+                              </p>
+                              <p className="text-xs text-gray-500">Compra: ${product.precioCompra || 0}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t">
+                            <span>
+                              Creado: {product.fechaCreacion.toLocaleDateString('es-ES')}
+                            </span>
+                            <span>
+                              Actualizado: {product.fechaActualizacion.toLocaleDateString('es-ES')}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No hay productos en este almacén</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Crea tu primer producto para comenzar
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>Total de productos: {allProducts.length}</span>
+                <button
+                  onClick={() => setShowAllProducts(false)}
+                  className="btn-secondary"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Historial Completo */}
       {showFullHistory && (
