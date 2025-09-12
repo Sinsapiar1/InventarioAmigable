@@ -30,7 +30,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from './firebase';
 
 // Componente principal de la aplicación
 function AppContent() {
@@ -170,9 +170,6 @@ function AppContent() {
     if (!currentUser || !activeWarehouse) return;
 
     try {
-      const { collection, getDocs } = await import('firebase/firestore');
-      const { db } = await import('../firebase');
-      
       const productosRef = collection(
         db,
         'usuarios',
