@@ -138,23 +138,23 @@ body {
   
   /* Estadísticas con acentos elegantes */
   .stat-accent-blue {
-    @apply border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50/50 to-transparent;
-    @apply dark:border-l-blue-400 dark:from-blue-900/20;
+    @apply border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50/30 to-transparent;
+    @apply dark:border-l-blue-400 dark:from-blue-900/30 dark:to-transparent;
   }
   
   .stat-accent-green {
-    @apply border-l-4 border-l-green-500 bg-gradient-to-r from-green-50/50 to-transparent;
-    @apply dark:border-l-green-400 dark:from-green-900/20;
+    @apply border-l-4 border-l-green-500 bg-gradient-to-r from-green-50/30 to-transparent;
+    @apply dark:border-l-green-400 dark:from-green-900/30 dark:to-transparent;
   }
   
   .stat-accent-orange {
-    @apply border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50/50 to-transparent;
-    @apply dark:border-l-orange-400 dark:from-orange-900/20;
+    @apply border-l-4 border-l-orange-500 bg-gradient-to-r from-orange-50/30 to-transparent;
+    @apply dark:border-l-orange-400 dark:from-orange-900/30 dark:to-transparent;
   }
   
   .stat-accent-purple {
-    @apply border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50/50 to-transparent;
-    @apply dark:border-l-purple-400 dark:from-purple-900/20;
+    @apply border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50/30 to-transparent;
+    @apply dark:border-l-purple-400 dark:from-purple-900/30 dark:to-transparent;
   }
 }
 

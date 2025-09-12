@@ -636,11 +636,11 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-200 mt-1">
-            <span className="font-medium text-blue-600 dark:text-blue-300">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
+          <p className="text-gray-700 dark:text-gray-100 mt-1 font-medium">
+            <span className="font-semibold text-blue-600 dark:text-blue-200">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-300 mt-2 hidden sm:block">
-            Sistema desarrollado por <span className="font-medium text-gray-600 dark:text-gray-200">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
+          <p className="text-xs text-gray-700 dark:text-gray-100 mt-2 hidden sm:block font-medium">
+            Sistema desarrollado por <span className="font-semibold text-gray-700 dark:text-gray-100">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center space-x-3">
@@ -690,7 +690,7 @@ const Dashboard = () => {
                     }}
                     className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    <ArrowUpDown className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <ArrowUpDown className="w-5 h-5 text-green-800 dark:text-green-200" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Registrar Movimiento</p>
                       <p className="text-xs text-gray-500">Entrada o salida de productos</p>
@@ -704,7 +704,7 @@ const Dashboard = () => {
                     }}
                     className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    <Clipboard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <Clipboard className="w-5 h-5 text-purple-800 dark:text-purple-200" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Toma de Inventario</p>
                       <p className="text-xs text-gray-500">Conteo físico de productos</p>
@@ -749,7 +749,7 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-blue">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Total Productos</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-100">Total Productos</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalProductos}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10">
@@ -757,8 +757,8 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 mr-1" />
-            <span className="text-green-600 dark:text-green-400 font-medium">+{stats.productosCreados} hoy</span>
+            <TrendingUp className="w-4 h-4 text-green-800 dark:text-green-200 mr-1" />
+            <span className="text-green-800 dark:text-green-200 font-bold">+{stats.productosCreados} hoy</span>
           </div>
         </div>
 
@@ -766,15 +766,15 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-orange">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Stock Bajo</p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 dark:text-orange-400">{stats.productosConStockBajo}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-100">Stock Bajo</p>
+              <p className="text-2xl font-bold text-orange-800 dark:text-orange-200 dark:text-orange-400">{stats.productosConStockBajo}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              <AlertTriangle className="w-6 h-6 text-orange-800 dark:text-orange-200" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className={`${stats.productosConStockBajo > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'}`}>
+            <span className={`${stats.productosConStockBajo > 0 ? 'text-orange-800 dark:text-orange-200' : 'text-green-800 dark:text-green-200'}`}>
               {stats.productosConStockBajo > 0 ? 'Requieren atención' : 'Niveles óptimos'}
             </span>
           </div>
@@ -784,18 +784,18 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-green">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Valor Total</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400 dark:text-green-400">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-100">Valor Total</p>
+              <p className="text-2xl font-bold text-green-800 dark:text-green-200 dark:text-green-400">
                 {formatCurrency(stats.valorTotalInventario)}
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <DollarSign className="w-6 h-6 text-green-800 dark:text-green-200" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <ArrowUp className="w-4 h-4 text-green-600 dark:text-green-400 mr-1" />
-            <span className="text-green-600 dark:text-green-400 font-medium">Inventario total</span>
+            <ArrowUp className="w-4 h-4 text-green-800 dark:text-green-200 mr-1" />
+            <span className="text-green-800 dark:text-green-200 font-bold">Inventario total</span>
           </div>
         </div>
 
@@ -803,16 +803,16 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-purple">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Actividad</p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 dark:text-purple-400">{stats.movimientosHoy}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-100">Actividad</p>
+              <p className="text-2xl font-bold text-purple-800 dark:text-purple-200 dark:text-purple-400">{stats.movimientosHoy}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg flex items-center justify-center">
-              <BarChart className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <BarChart className="w-6 h-6 text-purple-800 dark:text-purple-200" />
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400 mr-1" />
-            <span className="text-purple-600 dark:text-purple-400 dark:text-purple-400">{stats.movimientosSemana} esta semana</span>
+            <Calendar className="w-4 h-4 text-purple-800 dark:text-purple-200 mr-1" />
+            <span className="text-purple-800 dark:text-purple-200 dark:text-purple-400">{stats.movimientosSemana} esta semana</span>
           </div>
         </div>
       </div>
@@ -840,9 +840,9 @@ const Dashboard = () => {
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 dark:text-white">{producto.nombre}</h4>
                       <div className="flex items-center space-x-2 mt-1">
-                        <p className="text-sm text-gray-600 dark:text-gray-200">SKU: {producto.sku}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-100">SKU: {producto.sku}</p>
                         <span className="text-gray-400 dark:text-gray-500">•</span>
-                        <p className="text-sm text-gray-600 dark:text-gray-200">{producto.categoria}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-100">{producto.categoria}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -869,7 +869,7 @@ const Dashboard = () => {
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Alertas de Stock</h3>
-              <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <AlertTriangle className="w-5 h-5 text-orange-800 dark:text-orange-200" />
             </div>
           </div>
           <div className="p-6">
@@ -879,10 +879,10 @@ const Dashboard = () => {
                   <div key={producto.id} className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50 rounded-lg">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 dark:text-white">{producto.nombre}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-200">SKU: {producto.sku}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-100">SKU: {producto.sku}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-orange-600 dark:text-orange-400 dark:text-orange-400">{producto.cantidadActual || 0}</p>
+                      <p className="font-semibold text-orange-800 dark:text-orange-200 dark:text-orange-400">{producto.cantidadActual || 0}</p>
                       <p className="text-xs text-orange-500 dark:text-orange-400">Min: {producto.cantidadMinima || 5}</p>
                     </div>
                   </div>
@@ -891,9 +891,9 @@ const Dashboard = () => {
             ) : (
               <div className="text-center py-8">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Package className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <Package className="w-6 h-6 text-green-800 dark:text-green-200" />
                 </div>
-                <p className="text-green-600 dark:text-green-400 font-medium">Todo el stock está en niveles óptimos</p>
+                <p className="text-green-800 dark:text-green-200 font-medium">Todo el stock está en niveles óptimos</p>
                 <p className="text-sm text-gray-500 mt-1">No hay productos con stock bajo</p>
               </div>
             )}
@@ -1002,7 +1002,7 @@ const Dashboard = () => {
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className={`font-medium ${
-                        movimiento.tipoMovimiento === 'entrada' ? 'text-green-600 dark:text-green-400' : 'text-red-600'
+                        movimiento.tipoMovimiento === 'entrada' ? 'text-green-800 dark:text-green-200' : 'text-red-600'
                       }`}>
                         {movimiento.tipoMovimiento === 'entrada' ? '+' : '-'}{movimiento.cantidad}
                       </span>
@@ -1101,7 +1101,7 @@ const Dashboard = () => {
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex items-center space-x-2">
-                                  <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-green-600 dark:text-green-400'}`}>
+                                  <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-green-800 dark:text-green-200'}`}>
                                     {product.cantidadActual}
                                   </span>
                                   <span className="text-gray-400">/</span>
@@ -1115,7 +1115,7 @@ const Dashboard = () => {
                               </td>
                               <td className="px-4 py-3">
                                 <div className="text-sm">
-                                  <div className="text-green-600 dark:text-green-400 font-medium">
+                                  <div className="text-green-800 dark:text-green-200 font-medium">
                                     ${product.precioVenta || 0}
                                   </div>
                                   <div className="text-gray-500 text-xs">
@@ -1180,14 +1180,14 @@ const Dashboard = () => {
                           <div className="grid grid-cols-2 gap-3 mb-3">
                             <div>
                               <p className="text-xs text-gray-500 mb-1">Stock Actual</p>
-                              <p className={`font-bold text-lg ${isLowStock ? 'text-red-600' : 'text-green-600 dark:text-green-400'}`}>
+                              <p className={`font-bold text-lg ${isLowStock ? 'text-red-600' : 'text-green-800 dark:text-green-200'}`}>
                                 {product.cantidadActual}
                               </p>
                               <p className="text-xs text-gray-500">Mínimo: {product.cantidadMinima}</p>
                             </div>
                             <div>
                               <p className="text-xs text-gray-500 mb-1">Precio Venta</p>
-                              <p className="font-bold text-lg text-green-600 dark:text-green-400">
+                              <p className="font-bold text-lg text-green-800 dark:text-green-200">
                                 ${product.precioVenta || 0}
                               </p>
                               <p className="text-xs text-gray-500">Compra: ${product.precioCompra || 0}</p>
@@ -1337,7 +1337,7 @@ const Dashboard = () => {
                               <td className="px-3 py-2 whitespace-nowrap text-sm">
                                 <span className={`font-bold ${
                                   movement.tipoMovimiento === 'entrada' 
-                                    ? 'text-green-600 dark:text-green-400'
+                                    ? 'text-green-800 dark:text-green-200'
                                     : movement.tipoMovimiento === 'salida'
                                     ? 'text-red-600'
                                     : 'text-blue-600 dark:text-blue-400'
@@ -1406,7 +1406,7 @@ const Dashboard = () => {
                             <p className="text-xs text-gray-500 mb-1">Cantidad</p>
                             <p className={`font-bold text-lg ${
                               movement.tipoMovimiento === 'entrada' 
-                                ? 'text-green-600 dark:text-green-400'
+                                ? 'text-green-800 dark:text-green-200'
                                 : movement.tipoMovimiento === 'salida'
                                 ? 'text-red-600'
                                 : 'text-blue-600 dark:text-blue-400'
