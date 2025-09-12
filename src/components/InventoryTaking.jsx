@@ -530,8 +530,9 @@ const InventoryTaking = () => {
       const lines = text.split('\n').filter(line => line.trim());
       const headers = lines[0].split(',').map(h => h.trim());
       
-      // Validar headers requeridos
-      const requiredHeaders = ['SKU', 'Stock Físico'];
+      // Validar headers requeridos (compatible con export)
+      const requiredHeaders = ['SKU'];
+      const optionalHeaders = ['Stock Físico', 'Nombre', 'Categoria', 'Almacen', 'Stock Sistema', 'Diferencia', 'Verificado', 'Observaciones'];
       const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
       
       if (missingHeaders.length > 0) {
@@ -547,7 +548,12 @@ const InventoryTaking = () => {
           row[header] = values[index] || '';
         });
 
-        if (row.SKU && row['Stock Físico']) {
+        // Aceptar filas con SKU válido (Stock Físico es opcional)
+        if (row.SKU && row.SKU.trim()) {
+          // Si no tiene Stock Físico, usar Stock Sistema o 0
+          if (!row['Stock Físico'] || row['Stock Físico'].trim() === '') {
+            row['Stock Físico'] = row['Stock Sistema'] || '0';
+          }
           importData.push(row);
         }
       }
@@ -557,9 +563,9 @@ const InventoryTaking = () => {
       }
 
       // Procesar importación
-      await processImportData(importData);
+      const result = await processImportData(importData);
       
-      setSuccess(`Importación completada: ${importData.length} productos procesados`);
+      setSuccess(`Importación completada exitosamente: ${importData.length} productos procesados`);
       setShowImportModal(false);
       
       // Recargar datos
@@ -578,48 +584,93 @@ const InventoryTaking = () => {
   const processImportData = async (importData) => {
     const batch = writeBatch(db);
     const movimientos = [];
+    let processedCount = 0;
+    let createdCount = 0;
 
     for (const item of importData) {
-      const sku = item.SKU;
+      const sku = item.SKU.trim();
       const stockFisico = parseFloat(item['Stock Físico']) || 0;
+      const nombre = item.Nombre || `Producto ${sku}`;
+      const categoria = item.Categoria || 'General';
       const observaciones = item.Observaciones || '';
 
       // Buscar producto existente
       let productFound = false;
-      let targetWarehouseId = inventoryMode === 'specific' ? selectedWarehouse : null;
+      let productCreated = false;
 
       if (inventoryMode === 'specific') {
         // Modo específico: buscar en almacén seleccionado
         const productRef = doc(db, 'usuarios', currentUser.uid, 'almacenes', selectedWarehouse, 'productos', sku);
-        const productDoc = await batch.get ? null : await getDoc(productRef); // Simplified for batch
+        const productDoc = await getDoc(productRef);
         
-        if (productDoc?.exists()) {
+        if (productDoc.exists()) {
+          // Producto existe: actualizar stock
           const currentStock = productDoc.data().cantidadActual || 0;
           const diferencia = stockFisico - currentStock;
           
-          if (diferencia !== 0) {
-            batch.update(productRef, {
-              cantidadActual: stockFisico,
-              fechaActualizacion: new Date().toISOString(),
-            });
+          batch.update(productRef, {
+            cantidadActual: stockFisico,
+            fechaActualizacion: new Date().toISOString(),
+          });
 
+          if (diferencia !== 0) {
             movimientos.push({
               usuarioId: currentUser.uid,
               almacenId: selectedWarehouse,
               productoSKU: sku,
-              productoNombre: productDoc.data().nombre || 'Producto',
+              productoNombre: productDoc.data().nombre || nombre,
               tipoMovimiento: 'ajuste',
               subTipo: 'ajuste-por-importacion',
               cantidad: Math.abs(diferencia),
               stockAnterior: currentStock,
               stockNuevo: stockFisico,
-              razon: `Importación masiva - ${observaciones}`,
+              razon: `Importación: ${diferencia > 0 ? 'Aumento' : 'Reducción'} - ${observaciones}`,
               observaciones: observaciones,
               fecha: new Date().toISOString(),
               creadoPor: currentUser.email,
             });
           }
+          
           productFound = true;
+        } else {
+          // Producto NO existe: crear nuevo
+          const newProduct = {
+            sku: sku,
+            nombre: nombre,
+            categoria: categoria,
+            cantidadActual: stockFisico,
+            cantidadMinima: 5,
+            precioCompra: 0,
+            precioVenta: 0,
+            fechaCreacion: new Date().toISOString(),
+            fechaActualizacion: new Date().toISOString(),
+            creadoPor: currentUser.email,
+          };
+
+          batch.set(productRef, newProduct);
+
+          // Crear movimiento de entrada inicial
+          if (stockFisico > 0) {
+            movimientos.push({
+              usuarioId: currentUser.uid,
+              almacenId: selectedWarehouse,
+              productoSKU: sku,
+              productoNombre: nombre,
+              tipoMovimiento: 'entrada',
+              subTipo: 'producto-nuevo-importacion',
+              cantidad: stockFisico,
+              stockAnterior: 0,
+              stockNuevo: stockFisico,
+              razon: `Producto creado por importación - ${observaciones}`,
+              observaciones: observaciones,
+              fecha: new Date().toISOString(),
+              creadoPor: currentUser.email,
+            });
+          }
+
+          productFound = true;
+          productCreated = true;
+          createdCount++;
         }
       } else {
         // Modo general: buscar en todos los almacenes
@@ -628,39 +679,86 @@ const InventoryTaking = () => {
           const productDoc = await getDoc(productRef);
           
           if (productDoc.exists()) {
+            // Producto existe: actualizar stock
             const currentStock = productDoc.data().cantidadActual || 0;
             const diferencia = stockFisico - currentStock;
             
-            if (diferencia !== 0) {
-              batch.update(productRef, {
-                cantidadActual: stockFisico,
-                fechaActualizacion: new Date().toISOString(),
-              });
+            batch.update(productRef, {
+              cantidadActual: stockFisico,
+              fechaActualizacion: new Date().toISOString(),
+            });
 
+            if (diferencia !== 0) {
               movimientos.push({
                 usuarioId: currentUser.uid,
                 almacenId: warehouse.id,
                 productoSKU: sku,
-                productoNombre: productDoc.data().nombre || 'Producto',
+                productoNombre: productDoc.data().nombre || nombre,
                 tipoMovimiento: 'ajuste',
                 subTipo: 'ajuste-por-importacion',
                 cantidad: Math.abs(diferencia),
                 stockAnterior: currentStock,
                 stockNuevo: stockFisico,
-                razon: `Importación masiva - ${observaciones}`,
+                razon: `Importación: ${diferencia > 0 ? 'Aumento' : 'Reducción'} - ${observaciones}`,
                 observaciones: observaciones,
                 fecha: new Date().toISOString(),
                 creadoPor: currentUser.email,
               });
             }
+            
             productFound = true;
             break; // Solo actualizar el primer almacén que tenga el producto
           }
         }
+
+        // Si no se encontró en ningún almacén, crear en el almacén activo
+        if (!productFound && activeWarehouse) {
+          const productRef = doc(db, 'usuarios', currentUser.uid, 'almacenes', activeWarehouse, 'productos', sku);
+          
+          const newProduct = {
+            sku: sku,
+            nombre: nombre,
+            categoria: categoria,
+            cantidadActual: stockFisico,
+            cantidadMinima: 5,
+            precioCompra: 0,
+            precioVenta: 0,
+            fechaCreacion: new Date().toISOString(),
+            fechaActualizacion: new Date().toISOString(),
+            creadoPor: currentUser.email,
+          };
+
+          batch.set(productRef, newProduct);
+
+          // Crear movimiento de entrada inicial
+          if (stockFisico > 0) {
+            movimientos.push({
+              usuarioId: currentUser.uid,
+              almacenId: activeWarehouse,
+              productoSKU: sku,
+              productoNombre: nombre,
+              tipoMovimiento: 'entrada',
+              subTipo: 'producto-nuevo-importacion',
+              cantidad: stockFisico,
+              stockAnterior: 0,
+              stockNuevo: stockFisico,
+              razon: `Producto creado por importación - ${observaciones}`,
+              observaciones: observaciones,
+              fecha: new Date().toISOString(),
+              creadoPor: currentUser.email,
+            });
+          }
+
+          productFound = true;
+          productCreated = true;
+          createdCount++;
+        }
       }
 
-      if (!productFound) {
-        console.warn(`Producto con SKU ${sku} no encontrado`);
+      if (productFound) {
+        processedCount++;
+      } else {
+        console.warn(`Producto con SKU ${sku} no pudo ser procesado`);
       }
     }
 
@@ -671,6 +769,8 @@ const InventoryTaking = () => {
     for (const movimiento of movimientos) {
       await addDoc(collection(db, 'movimientos'), movimiento);
     }
+
+    console.log(`Importación completada: ${processedCount} productos procesados, ${createdCount} productos creados`);
   };
 
   // Crear estructura de datos para renderizado
@@ -1248,7 +1348,8 @@ const InventoryTaking = () => {
               <div>
                 <p className="text-sm text-gray-600 mb-3">
                   Importa cantidades de inventario desde un archivo CSV. 
-                  Solo se actualizarán productos existentes.
+                  <strong>Compatible con archivos exportados.</strong>
+                  Actualiza productos existentes y crea nuevos automáticamente.
                 </p>
                 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
