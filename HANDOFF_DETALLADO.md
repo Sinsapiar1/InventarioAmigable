@@ -1,44 +1,51 @@
 # 📋 HANDOFF EXTREMADAMENTE DETALLADO
-## Sistema de Inventario Pro - Documentación Completa
+## Sistema de Inventario Pro - Documentación Completa v2.0
+
+**Desarrollado por:** Raúl Jaime Pivet Álvarez  
+**Estado:** ✅ **PRODUCCIÓN - COMPLETAMENTE FUNCIONAL**  
+**Deploy:** https://inventario-amigable.vercel.app  
+**Repositorio:** https://github.com/Sinsapiar1/InventarioAmigable  
 
 ---
 
 ## 🏗️ **ARQUITECTURA DEL SISTEMA**
 
 ### **Tecnologías Utilizadas:**
-- **Frontend**: React 18.2.0 + Vite
-- **Estilos**: Tailwind CSS 3.3.6 (configurado)
+- **Frontend**: React 18.2.0 + Vite 5.0.8
+- **Estilos**: Tailwind CSS 3.3.6 (completamente configurado)
 - **Base de Datos**: Firebase Firestore 10.7.1
 - **Autenticación**: Firebase Auth
 - **Iconos**: Lucide React 0.263.1
 - **Lenguaje**: JavaScript (ES6+)
+- **Deploy**: Vercel (automático desde main branch)
 
 ### **Estructura de Archivos:**
 ```
 src/
 ├── components/          # Componentes de la aplicación
-│   ├── App.jsx         # Componente principal con navegación
+│   ├── App.jsx         # Componente principal con navegación y sidebar
 │   ├── Login.jsx       # Autenticación de usuarios
-│   ├── Dashboard.jsx   # Panel principal con estadísticas
-│   ├── ProductForm.jsx # Gestión de productos
-│   ├── MovementForm.jsx # Registro de movimientos
-│   ├── InventoryTaking.jsx # Toma de inventario físico
-│   ├── SettingsPanel.jsx # Configuración del sistema
-│   ├── WarehouseManager.jsx # Gestión de almacenes
+│   ├── Dashboard.jsx   # Panel principal con estadísticas por almacén
+│   ├── ProductForm.jsx # Gestión completa de productos multi-almacén
+│   ├── MovementForm.jsx # Registro de movimientos y traspasos
+│   ├── InventoryTaking.jsx # Toma de inventario físico + Import/Export
+│   ├── SettingsPanel.jsx # Configuración del sistema y usuarios
+│   ├── WarehouseManager.jsx # Gestión completa de almacenes
 │   ├── FriendsManager.jsx # Sistema de colaboradores
-│   ├── TransferRequestManager.jsx # Gestión de traspasos
-│   ├── NotificationContainer.jsx # Sistema de notificaciones
-│   ├── ConfirmDialog.jsx # Diálogos de confirmación
-│   ├── DuplicateSkuDialog.jsx # Manejo de SKU duplicados
-│   └── LoadingSpinner.jsx # Indicadores de carga
+│   ├── TransferRequestManager.jsx # Gestión de traspasos + PDF
+│   ├── NotificationContainer.jsx # Sistema de notificaciones en tiempo real
+│   ├── ConfirmDialog.jsx # Diálogos de confirmación personalizables
+│   ├── DuplicateSkuDialog.jsx # Manejo inteligente de SKU duplicados
+│   └── LoadingSpinner.jsx # Indicadores de carga con texto
 ├── contexts/
-│   └── AuthContext.jsx # Contexto de autenticación
+│   ├── AuthContext.jsx # Contexto de autenticación y perfil usuario
+│   └── WarehouseContext.jsx # Contexto global de almacenes activos
 ├── hooks/
-│   ├── useConfirm.js   # Hook para confirmaciones
+│   ├── useConfirm.js   # Hook para confirmaciones personalizadas
 │   ├── useProducts.js  # Hook para productos (tiempo real)
 │   └── useNotifications.js # Hook para notificaciones
 ├── firebase.js         # Configuración de Firebase
-├── index.css          # Estilos con Tailwind
+├── index.css          # Estilos principales con Tailwind
 └── main.jsx           # Punto de entrada
 ```
 
@@ -46,603 +53,535 @@ src/
 
 ## 🔐 **SISTEMA DE AUTENTICACIÓN**
 
-### **Funcionalidades:**
+### **Funcionalidades Implementadas:**
 - ✅ **Registro de usuarios** con email/contraseña
-- ✅ **Inicio de sesión** con validaciones
-- ✅ **Cerrar sesión** funcional
-- ✅ **Perfiles de usuario** en Firestore
-- ✅ **Validaciones robustas** (formato email, longitud contraseña)
+- ✅ **Login seguro** con validaciones
+- ✅ **Logout** con limpieza de estado
+- ✅ **Persistencia de sesión** automática
+- ✅ **Creación automática de perfil** de usuario
+- ✅ **Almacén principal** creado automáticamente
+- ✅ **Validaciones robustas** de email y contraseña
+- ✅ **Manejo de errores** en español
 
-### **Estructura de Datos - Usuarios:**
-```javascript
-usuarios/{userId} = {
-  email: "usuario@ejemplo.com",
-  nombreCompleto: "Usuario Ejemplo",
-  rol: "administrador",
-  fechaCreacion: "2025-01-01T00:00:00.000Z",
-  fechaUltimoAcceso: "2025-01-01T00:00:00.000Z",
-  configuracion: {
-    tema: "light",
-    idioma: "es",
-    notificaciones: true,
-    nivelMinimoDefault: 5,
-    alertasAutomaticas: true,
-    alertasStockCero: true
-  },
-  estado: "activo"
-}
-```
+### **Flujo de Autenticación:**
+1. **Registro/Login** → Validación → Firebase Auth
+2. **Creación automática** de perfil en Firestore
+3. **Creación automática** de "Almacén Principal"
+4. **Redirección** al Dashboard
+5. **Persistencia** automática de sesión
 
 ---
 
-## 📊 **DASHBOARD - PANEL PRINCIPAL**
+## 🏭 **SISTEMA MULTI-ALMACÉN**
 
-### **Estadísticas Mostradas:**
-- ✅ **Total Productos**: Cuenta todos los productos del usuario
-- ✅ **Stock Bajo**: Productos con cantidad ≤ mínimo
-- ✅ **Valor Total**: Suma de (cantidad × precio) de todos los productos
-- ✅ **Actividad**: Movimientos del día y semana
+### **Funcionalidades Avanzadas:**
+- ✅ **Gestión completa** de múltiples almacenes por usuario
+- ✅ **Almacén activo** seleccionable globalmente
+- ✅ **Cambio dinámico** entre almacenes
+- ✅ **Productos independientes** por almacén
+- ✅ **Estadísticas separadas** por almacén
+- ✅ **Traspasos internos** entre almacenes propios
+- ✅ **Traspasos externos** a colaboradores
 
-### **Widgets:**
-- ✅ **Productos Recientes**: Últimos 5 productos creados
-- ✅ **Alertas de Stock**: Productos con stock bajo
-- ✅ **Actividad Reciente**: Últimos 5 movimientos
-- ✅ **Botón Acción Rápida**: Navegación rápida a funciones
-
-### **Responsividad:**
-- ✅ **Desktop**: Vista de tabla completa
-- ✅ **Móvil**: Vista de cards adaptativa
-- ✅ **Estadísticas**: Grid responsive 1→2→4 columnas
+### **WarehouseContext:**
+```javascript
+const { 
+  activeWarehouse,     // ID del almacén activo
+  warehouses,          // Array de todos los almacenes
+  getActiveWarehouse,  // Función para obtener datos completos
+  changeActiveWarehouse // Función para cambiar almacén
+} = useWarehouse();
+```
 
 ---
 
 ## 📦 **GESTIÓN DE PRODUCTOS**
 
-### **Funcionalidades:**
-- ✅ **Crear productos** con validaciones completas
-- ✅ **Editar productos** existentes
-- ✅ **Eliminar productos** con confirmación
-- ✅ **Búsqueda** por nombre, SKU, categoría
-- ✅ **SKU duplicados**: Opción de sumar al stock existente
+### **Funcionalidades Completas:**
+- ✅ **CRUD completo** de productos por almacén
+- ✅ **SKU únicos** con validación
+- ✅ **Categorías personalizables**
+- ✅ **Precios** de compra y venta
+- ✅ **Stock actual** y mínimo
+- ✅ **Alertas de stock bajo** automáticas
+- ✅ **Búsqueda y filtrado** avanzado
+- ✅ **Vista responsive** (tabla desktop, cards mobile)
+- ✅ **Manejo de SKU duplicados** con suma inteligente
 
-### **Campos del Producto:**
+### **Lógica de SKU Duplicados:**
 ```javascript
-productos/{sku} = {
-  sku: "PROD-001",                    // Único, mayúsculas
-  nombre: "Nombre del Producto",      // Obligatorio
-  categoria: "Electrónicos",          // Predefinidas
-  cantidadActual: 100,                // Entero, stock actual
-  cantidadMinima: 5,                  // Entero, nivel crítico
-  precioVenta: 1500.00,              // Decimal, precio venta
-  precioCompra: 1000.00,             // Decimal, precio compra
-  proveedor: "Proveedor XYZ",        // Opcional
-  ubicacionFisica: "Estante A-1",    // Opcional
-  descripcion: "Descripción...",      // Opcional
-  fechaCreacion: "2025-01-01T00:00:00.000Z",
-  fechaActualizacion: "2025-01-01T00:00:00.000Z"
-}
-```
-
-### **Validaciones:**
-- ✅ **SKU**: Mínimo 3 caracteres, solo letras/números/guiones
-- ✅ **Nombre**: 2-100 caracteres
-- ✅ **Cantidades**: Solo números enteros positivos
-- ✅ **Precios**: Precio venta > precio compra
-- ✅ **SKU único**: Configurable (error o suma)
-
-### **SKU Duplicados:**
-- ✅ **Opción 1**: Mostrar error (comportamiento tradicional)
-- ✅ **Opción 2**: Sumar al stock existente (más flexible)
-- ✅ **Diálogo visual**: Muestra operación (5 + 3 = 8)
-- ✅ **Registro automático**: Movimiento de entrada por suma
-
----
-
-## 🔄 **MOVIMIENTOS DE INVENTARIO**
-
-### **Tipos de Entrada:**
-- ✅ **Compra a proveedor**
-- ✅ **Devolución de cliente**
-- ✅ **Ajuste positivo**
-- ✅ **Traspaso desde otro almacén**
-- ✅ **Producción interna**
-
-### **Tipos de Salida:**
-- ✅ **Venta a cliente**
-- ✅ **Merma o deterioro**
-- ✅ **Devolución a proveedor**
-- ✅ **Ajuste negativo**
-- ✅ **Traspaso a otro almacén** ⭐
-- ✅ **Uso interno**
-
-### **Estructura de Movimientos:**
-```javascript
-movimientos/{id} = {
-  usuarioId: "userId",
-  almacenId: "principal",
-  productoSKU: "PROD-001",
-  productoNombre: "Producto",
-  tipoMovimiento: "entrada" | "salida",
-  subTipo: "Compra a proveedor",
-  cantidad: 10,                       // Entero
-  cantidadAnterior: 50,
-  cantidadNueva: 60,
-  razon: "Descripción del movimiento",
-  numeroDocumento: "FAC-001",         // Opcional
-  observaciones: "Notas adicionales", // Opcional
-  fecha: "2025-01-01T00:00:00.000Z",
-  creadoPor: "usuario@ejemplo.com",
-  traspasoId: "id-solicitud"          // Solo para traspasos
-}
-```
-
-### **Validaciones:**
-- ✅ **Stock suficiente** para salidas
-- ✅ **Cantidades enteras** (sin decimales)
-- ✅ **Campos obligatorios** validados
-- ✅ **Advertencia stock bajo** al usuario
-
----
-
-## 🏭 **SISTEMA DE ALMACENES**
-
-### **Funcionalidades:**
-- ✅ **Almacén Principal**: Creado automáticamente, no eliminable
-- ✅ **Crear almacenes**: Múltiples almacenes por usuario
-- ✅ **Editar/Eliminar**: Control total (excepto principal)
-- ✅ **Estados**: Activo/Inactivo
-- ✅ **Transferencias internas**: Entre mis almacenes
-
-### **Estructura de Almacenes:**
-```javascript
-usuarios/{userId}/almacenes/{almacenId} = {
-  nombre: "Almacén Norte",
-  ubicacion: "Bogotá, Colombia",
-  descripcion: "Almacén secundario",
-  activo: true,
-  fechaCreacion: "2025-01-01T00:00:00.000Z",
-  fechaActualizacion: "2025-01-01T00:00:00.000Z",
-  creadoPor: "usuario@ejemplo.com",
-  configuracion: {
-    alertasStockBajo: true,
-    nivelMinimoDefault: 5
-  }
-}
+// Al crear producto con SKU existente:
+1. Detecta duplicado automáticamente
+2. Muestra dialog con información del producto existente
+3. Opción de sumar cantidades o cancelar
+4. Registra movimiento de entrada si se suma
+5. Actualiza stock automáticamente
 ```
 
 ---
 
-## 👥 **SISTEMA DE COLABORADORES**
+## 🔄 **SISTEMA DE MOVIMIENTOS**
 
-### **Flujo Completo:**
-1. **Buscar usuario** por email
-2. **Enviar solicitud** de colaboración
-3. **Usuario destino** recibe notificación
-4. **Aceptar/Rechazar** solicitud
-5. **Colaboradores confirmados** pueden transferirse mercadería
+### **Tipos de Movimientos:**
+**ENTRADAS:**
+- Compra a proveedor
+- Devolución de cliente
+- Ajuste positivo
+- Traspaso desde otro almacén
+- Producción interna
 
-### **Estructura de Amistades:**
-```javascript
-amistades/{id} = {
-  usuarioId: "userId1",              // Quien envía
-  usuarioNombre: "Usuario Uno",
-  usuarioEmail: "user1@ejemplo.com",
-  amigoId: "userId2",                // Quien recibe
-  amigoNombre: "Usuario Dos",
-  amigoEmail: "user2@ejemplo.com",
-  estado: "pendiente" | "aceptada" | "rechazada",
-  fechaCreacion: "2025-01-01T00:00:00.000Z",
-  fechaRespuesta: "2025-01-01T00:00:00.000Z",
-  mensaje: "Mensaje de solicitud"
-}
+**SALIDAS:**
+- Venta a cliente
+- Merma o deterioro
+- Devolución a proveedor
+- Ajuste negativo
+- Traspaso a otro almacén
+- Uso interno
+
+### **Traspasos Avanzados:**
+**INTERNOS (Entre almacenes propios):**
+- ✅ Selección de almacén destino
+- ✅ Actualización inmediata de stock
+- ✅ Registro de movimientos en ambos almacenes
+- ✅ Sin aprobaciones necesarias
+
+**EXTERNOS (A colaboradores):**
+- ✅ Selección de colaborador y su almacén
+- ✅ Creación de solicitud de traspaso
+- ✅ Notificación al usuario destino
+- ✅ Sistema de aprobación/rechazo
+- ✅ Generación automática de PDF
+- ✅ Actualización de stock solo al aprobar
+
+---
+
+## 👥 **SISTEMA DE COLABORACIÓN**
+
+### **Gestión de Colaboradores:**
+- ✅ **Envío de solicitudes** de amistad por email
+- ✅ **Validación de emails** existentes en el sistema
+- ✅ **Sistema de aprobación** bidireccional
+- ✅ **Lista de colaboradores** confirmados
+- ✅ **Eliminación** de colaboradores
+
+### **Solicitudes de Traspaso:**
+- ✅ **Creación automática** al hacer traspaso externo
+- ✅ **Notificaciones en tiempo real**
+- ✅ **Panel de gestión** con solicitudes recibidas/enviadas
+- ✅ **Historial completo** de traspasos
+- ✅ **Estados:** Pendiente, Aprobado, Rechazado
+
+### **Generación de PDF:**
+- ✅ **Documento profesional** con detalles completos
+- ✅ **Información de usuarios** y almacenes
+- ✅ **Cronología detallada** del traspaso
+- ✅ **Auto-descarga** al aprobar
+- ✅ **Diseño corporativo**
+
+---
+
+## 📊 **TOMA DE INVENTARIO AVANZADA**
+
+### **Modos de Inventario:**
+
+**MODO ESPECÍFICO:**
+- ✅ Selección de almacén individual
+- ✅ Inventario solo de productos del almacén
+- ✅ Ajustes de stock en almacén específico
+- ✅ Export/Import por almacén
+
+**MODO GENERAL:**
+- ✅ Consolidación de TODOS los almacenes
+- ✅ Vista por producto-almacén individual
+- ✅ Columna 'Almacén' para identificación
+- ✅ Ajustes independientes por almacén
+- ✅ Export/Import consolidado
+
+### **Sistema Import/Export:**
+
+**EXPORTACIÓN:**
+- ✅ **Compatible con ambos modos** (específico/general)
+- ✅ **Formato CSV** estándar
+- ✅ **Columnas completas:** SKU, Nombre, Categoria, Almacen, Stock Sistema, Stock Físico, Diferencia, Verificado
+- ✅ **Descarga automática** con fecha
+
+**IMPORTACIÓN:**
+- ✅ **100% compatible** con archivos exportados
+- ✅ **Headers flexibles:** Solo SKU requerido
+- ✅ **Creación automática** de productos no existentes
+- ✅ **Categorías nuevas** aceptadas automáticamente
+- ✅ **Validación robusta** de datos
+- ✅ **Procesamiento por lotes** (writeBatch)
+- ✅ **Movimientos automáticos** de ajuste
+- ✅ **Plantilla descargable** con ejemplos
+
+**Flujo Completo:**
+```
+1. Exportar → archivo.csv
+2. Modificar en Excel/Sheets → Agregar productos/categorías
+3. Importar → Validación automática
+4. Procesamiento → Stock actualizado + Movimientos registrados
 ```
 
 ---
 
-## 🚚 **SISTEMA DE TRASPASOS PROFESIONAL**
+## 📈 **DASHBOARD INTELIGENTE**
 
-### **Tipos de Traspasos:**
+### **Estadísticas por Almacén:**
+- ✅ **Total de productos** en almacén activo
+- ✅ **Valor total** del inventario
+- ✅ **Productos con stock bajo**
+- ✅ **Movimientos recientes** del almacén
+- ✅ **Auto-refresh** cada 30 segundos
+- ✅ **Vista responsive** (tabla/cards)
 
-#### **1. TRASPASOS INTERNOS** (Entre mis almacenes):
-- **Origen**: Mi Almacén Principal
-- **Destino**: Mi Almacén Norte
-- **Proceso**: Directo (salida origen + entrada destino)
-- **Documento**: Registro interno simple
-
-#### **2. TRASPASOS EXTERNOS** (A colaboradores):
-- **Origen**: Mi almacén
-- **Destino**: Almacén de colaborador
-- **Proceso**: Solicitud → Aprobación → Ejecución
-- **Documento**: PDF formal descargable
-
-### **Flujo de Traspasos Externos:**
-
-#### **PASO 1 - SOLICITAR:**
-- Usuario A crea traspaso externo
-- Stock se reduce inmediatamente del origen
-- Se crea solicitud pendiente
-- Se notifica al usuario destino
-
-#### **PASO 2 - APROBAR/RECHAZAR:**
-- Usuario B ve solicitud en "Ver Traspasos"
-- **Si APRUEBA**: Stock llega al destino + PDF descarga
-- **Si RECHAZA**: Stock regresa automáticamente al origen
-
-### **Estructura de Solicitudes:**
-```javascript
-solicitudes-traspaso/{id} = {
-  usuarioOrigenId: "userId1",
-  usuarioOrigenNombre: "Usuario Uno",
-  usuarioOrigenEmail: "user1@ejemplo.com",
-  almacenOrigenId: "principal",
-  almacenOrigenNombre: "Almacén Principal",
-  
-  usuarioDestinoId: "userId2",
-  usuarioDestinoNombre: "Usuario Dos", 
-  usuarioDestinoEmail: "user2@ejemplo.com",
-  almacenDestinoId: "principal",
-  almacenDestinoNombre: "Almacén Principal",
-  
-  productoSKU: "PROD-001",
-  productoNombre: "Producto",
-  productoCategoria: "Electrónicos",
-  cantidad: 10,
-  
-  razon: "Traspaso de prueba",
-  observaciones: "Notas adicionales",
-  numeroDocumento: "TRX-001",
-  
-  estado: "pendiente" | "aprobada" | "rechazada",
-  fechaCreacion: "2025-01-01T00:00:00.000Z",
-  fechaAprobacion: "2025-01-01T00:00:00.000Z",
-  fechaRechazo: "2025-01-01T00:00:00.000Z",
-  aprobadoPor: "user2@ejemplo.com",
-  rechazadoPor: "user2@ejemplo.com",
-  movimientoOrigenId: "movimiento-id"
-}
-```
+### **Alertas Automáticas:**
+- ✅ **Stock bajo** con umbral configurable
+- ✅ **Stock crítico** por producto
+- ✅ **Notificaciones visuales** en tiempo real
 
 ---
 
 ## 🔔 **SISTEMA DE NOTIFICACIONES**
 
 ### **Tipos de Notificaciones:**
-- ✅ **Solicitud de amistad**: Cuando alguien quiere colaborar
-- ✅ **Solicitud de traspaso**: Cuando alguien quiere transferir mercadería
-- ✅ **Respuesta de solicitud**: Cuando aceptan/rechazan
-- ✅ **Stock bajo**: Alertas automáticas
-- ✅ **Errores del sistema**: Fallos de operaciones
+- ✅ **Solicitudes de colaboración**
+- ✅ **Solicitudes de traspaso**
+- ✅ **Traspasos aprobados/rechazados**
+- ✅ **Alertas de stock bajo**
+- ✅ **Confirmaciones de operaciones**
 
-### **Estructura de Notificaciones:**
-```javascript
-notificaciones/{id} = {
-  usuarioId: "userId",
-  tipo: "solicitud_traspaso",
-  titulo: "Nueva Solicitud de Traspaso",
-  mensaje: "Usuario quiere transferirte 10 productos",
-  leida: false,
-  fecha: "2025-01-01T00:00:00.000Z",
-  datos: {
-    solicitudId: "solicitud-id",
-    productoNombre: "Producto",
-    cantidad: 10,
-    remitente: "Usuario Remitente"
-  }
-}
-```
-
----
-
-## 📱 **NAVEGACIÓN Y UX**
-
-### **Navegación Principal:**
-- ✅ **Dashboard**: Resumen general y estadísticas
-- ✅ **Productos**: Gestión del catálogo
-- ✅ **Movimientos**: Entradas y salidas
-- ✅ **Inventario Físico**: Conteo y reconciliación
-
-### **Header (Esquina Superior Derecha):**
-- ✅ **🔔 Notificaciones**: Panel de notificaciones + "Ver Traspasos"
-- ✅ **⚙️ Configuración**: Stock crítico + Gestión avanzada
-- ✅ **👤 Usuario**: Información + Cerrar sesión
-
-### **Responsividad:**
-- ✅ **Desktop**: Sidebar fijo + tablas completas
-- ✅ **Tablet**: Sidebar colapsable + tablas responsive
-- ✅ **Móvil**: Navegación inferior + vista de cards
+### **Características:**
+- ✅ **Tiempo real** con listeners de Firestore
+- ✅ **Persistencia** en base de datos
+- ✅ **Auto-dismissal** configurable
+- ✅ **Iconos descriptivos**
+- ✅ **Colores por tipo** (éxito, error, info, warning)
 
 ---
 
 ## ⚙️ **CONFIGURACIÓN DEL SISTEMA**
 
-### **Stock Crítico:**
-- **Nivel mínimo global**: Valor por defecto para productos nuevos
-- **Alertas automáticas**: ON/OFF para notificaciones
-- **Alertas de stock cero**: Notificaciones críticas
+### **Settings Panel:**
+- ✅ **Stock crítico global** configurable
+- ✅ **Alertas automáticas** on/off
+- ✅ **Acceso rápido** a gestores avanzados
+- ✅ **Información del desarrollador**
 
-### **Gestión Avanzada:**
-- **Gestión de Almacenes**: Crear/editar múltiples almacenes
-- **Sistema de Colaboradores**: Buscar usuarios + solicitudes
-
----
-
-## 🔢 **LÓGICA DE NÚMEROS**
-
-### **Cantidades (Stock):**
-- **Tipo**: Números enteros únicamente
-- **Validación**: No se permiten decimales
-- **Prevención**: onKeyDown bloquea punto/coma
-- **Procesamiento**: parseInt() para garantizar enteros
-
-### **Precios:**
-- **Tipo**: Números decimales (hasta 2 decimales)
-- **Validación**: Precio venta > precio compra
-- **Procesamiento**: parseFloat() con validación
+### **Configuraciones Avanzadas:**
+- ✅ **Gestión de almacenes** completa
+- ✅ **Sistema de colaboradores**
+- ✅ **Transferencias entre usuarios**
 
 ---
 
-## 🚚 **TRASPASOS DETALLADOS**
-
-### **TRASPASOS INTERNOS:**
-```
-FLUJO:
-Usuario A: Almacén Principal (50 unidades) 
-    ↓ Traspaso Interno (10 unidades)
-Usuario A: Almacén Norte (10 unidades)
-
-RESULTADO:
-- Principal: 50 → 40
-- Norte: 0 → 10
-- Movimientos: 2 (salida + entrada)
-```
-
-### **TRASPASOS EXTERNOS:**
-```
-FLUJO:
-Usuario A: Almacén Principal (50 unidades)
-    ↓ Solicitar Traspaso (10 unidades)
-Usuario B: Recibe notificación
-    ↓ Aprobar Solicitud
-Usuario B: Almacén Principal (10 unidades) + PDF
-
-RESULTADO SI APRUEBA:
-- Usuario A: 50 → 40 (inmediato)
-- Usuario B: 0 → 10 (al aprobar)
-- PDF descargado
-- Movimientos registrados
-
-RESULTADO SI RECHAZA:
-- Usuario A: 40 → 50 (devuelto)
-- Usuario B: Sin cambios
-- Movimiento de devolución
-```
-
----
-
-## 📄 **DOCUMENTOS PDF**
-
-### **Generación:**
-- **Formato**: HTML estilizado descargable
-- **Cuándo**: Solo en traspasos externos aprobados
-- **Contenido**: Origen, destino, producto, cantidades, fechas
-- **Nombre**: `TRASPASO_{SKU}_{FECHA}.html`
-
-### **Uso:**
-1. Descargar archivo HTML
-2. Abrir en navegador
-3. Imprimir como PDF (Ctrl+P)
-
----
-
-## 🔍 **VALIDACIONES DEL SISTEMA**
-
-### **Productos:**
-- SKU: 3+ caracteres, único (o suma si configurado)
-- Nombre: 2-100 caracteres
-- Cantidades: Enteros positivos
-- Precios: Decimales positivos, venta > compra
-
-### **Movimientos:**
-- Producto: Debe existir
-- Cantidad: Entero positivo
-- Stock suficiente: Para salidas
-- Razón: Mínimo 5 caracteres
-
-### **Traspasos:**
-- Colaborador: Debe ser "amigo" confirmado
-- Almacén destino: Debe existir y estar activo
-- Tipo seleccionado: Interno o externo
-
----
-
-## 🔄 **FLUJOS COMPLETOS**
-
-### **FLUJO 1: Crear Producto con SKU Duplicado**
-1. Ir a **Productos** → **Nuevo Producto**
-2. Configurar **"Sumar al stock existente"**
-3. Ingresar SKU existente + cantidad nueva
-4. **Resultado**: Diálogo muestra suma (existente + nueva = final)
-5. Confirmar → Stock sumado + movimiento registrado
-
-### **FLUJO 2: Traspaso Interno**
-1. Crear almacén adicional en **Configuración → Gestión de Almacenes**
-2. **Movimientos** → **Salida** → **Traspaso a otro almacén**
-3. Seleccionar **Traspaso Interno** → Elegir almacén
-4. **Resultado**: Stock transferido inmediatamente
-
-### **FLUJO 3: Traspaso Externo Completo**
-1. **Usuario A**: Agregar colaborador (Configuración → Colaboradores)
-2. **Usuario B**: Aceptar solicitud de colaboración
-3. **Usuario A**: Movimientos → Traspaso Externo → Seleccionar Usuario B
-4. **Usuario B**: Notificaciones → Ver Traspasos → Aprobar
-5. **Resultado**: Stock transferido + PDF descargado
-
-### **FLUJO 4: Toma de Inventario**
-1. **Inventario Físico** → **Iniciar Inventario**
-2. Contar físicamente productos
-3. Ingresar cantidades reales
-4. **Guardar Inventario**
-5. **Resultado**: Ajustes automáticos + movimientos registrados
-
----
-
-## 🗄️ **ESTRUCTURA DE BASE DE DATOS FIREBASE**
+## 🗄️ **ESTRUCTURA DE BASE DE DATOS (FIRESTORE)**
 
 ### **Colecciones Principales:**
+
+```javascript
+usuarios/{userId}
+├── email: string
+├── nombreCompleto: string
+├── fechaCreacion: timestamp
+├── configuracion: {
+│   ├── stockCriticoGlobal: number
+│   ├── alertasAutomaticas: boolean
+│   └── tema: string
+│   }
+└── almacenes/{almacenId}
+    ├── nombre: string
+    ├── ubicacion: string
+    ├── descripcion: string
+    ├── fechaCreacion: timestamp
+    └── productos/{sku}
+        ├── sku: string
+        ├── nombre: string
+        ├── categoria: string
+        ├── cantidadActual: number
+        ├── cantidadMinima: number
+        ├── precioCompra: number
+        ├── precioVenta: number
+        └── fechaActualizacion: timestamp
+
+movimientos/{movimientoId}
+├── usuarioId: string
+├── almacenId: string
+├── productoSKU: string
+├── productoNombre: string
+├── tipoMovimiento: "entrada" | "salida" | "ajuste"
+├── subTipo: string
+├── cantidad: number
+├── stockAnterior: number
+├── stockNuevo: number
+├── razon: string
+├── observaciones: string
+├── fecha: timestamp
+└── creadoPor: string
+
+amistades/{amistadId}
+├── usuarioSolicitante: string
+├── usuarioDestino: string
+├── estado: "pendiente" | "aceptada" | "rechazada"
+├── fechaSolicitud: timestamp
+└── fechaRespuesta: timestamp
+
+solicitudes-traspaso/{solicitudId}
+├── usuarioOrigenId: string
+├── usuarioDestinoId: string
+├── almacenOrigenId: string
+├── almacenDestinoId: string
+├── productoSKU: string
+├── cantidad: number
+├── estado: "pendiente" | "aprobada" | "rechazada"
+├── fechaSolicitud: timestamp
+├── fechaRespuesta: timestamp
+└── razon: string
+
+notificaciones/{notificacionId}
+├── usuarioId: string
+├── tipo: string
+├── titulo: string
+├── mensaje: string
+├── leida: boolean
+├── fechaCreacion: timestamp
+└── datos: object
 ```
-firestore/
-├── usuarios/{userId}                    # Perfiles de usuario
-├── usuarios/{userId}/almacenes/{id}     # Almacenes por usuario
-├── usuarios/{userId}/almacenes/{id}/productos/{sku} # Productos por almacén
-├── movimientos/{id}                     # Todos los movimientos
-├── amistades/{id}                       # Relaciones entre usuarios
-├── solicitudes-traspaso/{id}           # Solicitudes de traspaso
-└── notificaciones/{id}                 # Notificaciones del sistema
+
+---
+
+## 🔧 **FUNCIONALIDADES TÉCNICAS AVANZADAS**
+
+### **Optimizaciones de Performance:**
+- ✅ **useMemo** para cálculos pesados
+- ✅ **useCallback** para funciones
+- ✅ **Lazy loading** de componentes
+- ✅ **Auto-refresh inteligente**
+- ✅ **Queries optimizadas** de Firestore
+
+### **Manejo de Estados:**
+- ✅ **Context API** para estado global
+- ✅ **Custom hooks** reutilizables
+- ✅ **Estados locales** optimizados
+- ✅ **Error boundaries** implícitos
+
+### **Validaciones y Seguridad:**
+- ✅ **Validación client-side** completa
+- ✅ **Sanitización** de inputs
+- ✅ **Reglas de Firestore** (pendiente implementar)
+- ✅ **Manejo de errores** robusto
+
+---
+
+## 📱 **RESPONSIVE DESIGN**
+
+### **Breakpoints:**
+- **Mobile:** < 640px → Cards, menú hamburguesa
+- **Tablet:** 640px - 1024px → Híbrido
+- **Desktop:** > 1024px → Tablas completas, sidebar fijo
+
+### **Componentes Adaptativos:**
+- ✅ **Tablas → Cards** en móvil
+- ✅ **Sidebar colapsable**
+- ✅ **Modales responsive**
+- ✅ **Formularios optimizados**
+
+---
+
+## 🚀 **FLUJOS DE USUARIO PRINCIPALES**
+
+### **1. Registro y Setup Inicial:**
+```
+1. Registro → Validación → Firebase Auth
+2. Creación automática de perfil
+3. Creación de "Almacén Principal"
+4. Redirección al Dashboard
+5. Tour guiado (implícito por UI)
 ```
 
-### **Índices Necesarios:**
-- **movimientos**: usuarioId (simple)
-- **amistades**: usuarioId, amigoId (simples)
-- **notificaciones**: usuarioId (simple)
+### **2. Gestión Diaria de Inventario:**
+```
+1. Login → Dashboard con estadísticas
+2. Seleccionar almacén activo
+3. Ver productos y alertas
+4. Registrar movimientos
+5. Revisar notificaciones
+```
+
+### **3. Toma de Inventario:**
+```
+1. Ir a "Toma de Inventario"
+2. Seleccionar modo (específico/general)
+3. Elegir almacén (si específico)
+4. Iniciar inventario
+5. Contar productos físicamente
+6. Registrar cantidades en sistema
+7. Guardar → Ajustes automáticos
+8. Exportar reporte (opcional)
+```
+
+### **4. Colaboración entre Usuarios:**
+```
+1. Configuración → Gestión de Colaboradores
+2. Agregar colaborador por email
+3. Colaborador acepta solicitud
+4. Hacer traspaso externo
+5. Colaborador recibe notificación
+6. Aprobar/Rechazar traspaso
+7. PDF automático + Stock actualizado
+```
+
+### **5. Import/Export Masivo:**
+```
+1. Toma de Inventario → Iniciar
+2. Exportar → Descargar CSV
+3. Modificar en Excel/Sheets
+4. Importar → Seleccionar archivo
+5. Validación automática
+6. Stock actualizado + Movimientos
+```
 
 ---
 
-## 🎯 **CARACTERÍSTICAS PROFESIONALES**
+## ⚠️ **PROBLEMAS CONOCIDOS Y SOLUCIONES**
 
-### **Seguridad:**
-- ✅ **Autenticación obligatoria**
-- ✅ **Datos por usuario aislados**
-- ✅ **Validaciones en cliente y servidor**
-- ✅ **Transacciones atómicas**
+### **1. Email Verification (PENDIENTE):**
+**Problema:** Firebase sendEmailVerification() causa errores
+**Estado:** Revertido, sistema funciona sin verificación
+**Solución Futura:** Implementar en ambiente separado
 
-### **Experiencia de Usuario:**
-- ✅ **Notificaciones en tiempo real**
-- ✅ **Estados de carga informativos**
-- ✅ **Confirmaciones para acciones destructivas**
-- ✅ **Feedback visual completo**
-- ✅ **Auto-refresh cada 5 segundos**
+### **2. Scroll en Campos Numéricos (SOLUCIONADO):**
+**Problema:** Mouse scroll cambiaba valores accidentalmente
+**Solución:** `onWheel={(e) => e.target.blur()}`
 
-### **Escalabilidad:**
-- ✅ **Múltiples almacenes por usuario**
-- ✅ **Sistema de colaboradores ilimitado**
-- ✅ **Transferencias entre cualquier usuario**
-- ✅ **Historial completo de movimientos**
+### **3. Double-click en Botones (SOLUCIONADO):**
+**Problema:** Doble-click causaba operaciones duplicadas
+**Solución:** Estados `loading` y `disabled` durante operaciones
+
+### **4. Índices de Firestore (SOLUCIONADO):**
+**Problema:** Queries complejas requerían índices
+**Solución:** Simplificación de queries + filtrado client-side
 
 ---
 
-## 🧪 **CASOS DE PRUEBA**
+## 🧪 **CASOS DE PRUEBA PRINCIPALES**
 
-### **Test 1: Usuario Nuevo**
-1. Registro → Login → Dashboard vacío
-2. Crear producto → Ver estadísticas actualizadas
-3. Registrar movimiento → Ver historial
+### **Autenticación:**
+- ✅ Registro con email válido/inválido
+- ✅ Login con credenciales correctas/incorrectas
+- ✅ Persistencia de sesión
+- ✅ Logout y limpieza de estado
 
-### **Test 2: Colaboración**
-1. Usuario A busca Usuario B por email
-2. Usuario B acepta solicitud
-3. Usuario A transfiere mercadería
-4. Usuario B aprueba → Stock actualizado
+### **Productos:**
+- ✅ Crear producto con datos válidos
+- ✅ SKU duplicado → Dialog de suma
+- ✅ Validaciones de campos requeridos
+- ✅ Edición y eliminación
+- ✅ Búsqueda y filtrado
 
-### **Test 3: Multi-Almacén**
-1. Crear almacén secundario
-2. Transferir productos internamente
-3. Ver stock en ambos almacenes
+### **Movimientos:**
+- ✅ Entradas y salidas simples
+- ✅ Traspasos internos entre almacenes
+- ✅ Traspasos externos con aprobación
+- ✅ Validación de stock disponible
+- ✅ Generación de PDF
 
----
+### **Inventario:**
+- ✅ Modo específico vs general
+- ✅ Export/Import compatible
+- ✅ Creación de productos por import
+- ✅ Validaciones de archivo CSV
 
-## 🚨 **PROBLEMAS CONOCIDOS Y SOLUCIONES**
-
-### **Decimales Raros (0.010000000000001563):**
-- **Causa**: JavaScript floating point precision
-- **Solución**: parseInt() para cantidades, parseFloat() solo para precios
-- **Prevención**: onKeyDown bloquea decimales en campos de cantidad
-
-### **Scroll del Mouse Cambia Valores:**
-- **Causa**: Comportamiento por defecto de input type="number"
-- **Problema**: 30 → 29.99 al hacer scroll sobre el campo
-- **Solución**: onWheel={(e) => e.target.blur()} 
-- **Resultado**: Scroll no afecta los valores numéricos
-
-### **Doble Clic en Botones:**
-- **Causa**: Usuarios impacientes
-- **Solución**: disabled={loading} + estados de carga
-- **Prevención**: Botones se deshabilitan durante procesamiento
-
-### **Stock No Actualizado:**
-- **Causa**: Sin refresh automático o estructura de datos inconsistente
-- **Solución**: Auto-refresh cada 15s + recrear usuarios con datos corruptos
-- **Resultado**: Cambios visibles en tiempo real
+### **Colaboración:**
+- ✅ Solicitudes de amistad
+- ✅ Aprobación/Rechazo
+- ✅ Traspasos entre usuarios
+- ✅ Notificaciones en tiempo real
 
 ---
 
-## 📋 **COMANDOS DE MANTENIMIENTO**
+## 🔮 **ROADMAP Y MEJORAS FUTURAS**
 
-### **Desarrollo:**
+### **Prioridad Alta:**
+- 📧 **Email Verification** robusto
+- 🔐 **Roles y permisos** granulares
+- 📊 **Reportes avanzados** con gráficos
+- 🏷️ **Códigos de barras** y QR
+
+### **Prioridad Media:**
+- 📱 **App móvil** nativa
+- 🔍 **Búsqueda avanzada** con filtros
+- 📈 **Analytics** y tendencias
+- 🔔 **Notificaciones push**
+
+### **Prioridad Baja:**
+- 🌐 **Multi-idioma**
+- 🎨 **Temas personalizables**
+- 📦 **Integración con proveedores**
+- 🤖 **Automatizaciones** avanzadas
+
+---
+
+## 🛠️ **GUÍA DE DESARROLLO**
+
+### **Setup Local:**
 ```bash
-npm install          # Instalar dependencias
-npm run dev         # Servidor de desarrollo
-npm run build       # Build para producción
+git clone https://github.com/Sinsapiar1/InventarioAmigable
+cd InventarioAmigable
+npm install
+npm run dev
 ```
 
-### **Git/StackBlitz:**
-```bash
-git status                    # Ver estado
-git reset --hard origin/main  # Forzar sincronización
-git log --oneline -5         # Ver últimos commits
+### **Estructura de Commits:**
+```
+🎯 FEAT: Nueva funcionalidad
+🔧 FIX: Corrección de errores
+🎨 STYLE: Cambios de diseño
+📦 REFACTOR: Reestructuración de código
+🧪 TEST: Pruebas
+📚 DOCS: Documentación
 ```
 
----
-
-## 🎯 **PRÓXIMAS MEJORAS SUGERIDAS**
-
-### **🚨 TAREA PENDIENTE PRINCIPAL:**
-- 🔐 **VERIFICACIÓN DE EMAILS POR CÓDIGO**: 
-  - **Objetivo**: Usuario se registra → Recibe código por email → Verifica → Acceso
-  - **Problema técnico**: sendEmailVerification() de Firebase rompe login de usuarios existentes
-  - **Intentos realizados**: 3 intentos fallidos, todos revertidos por romper sistema
-  - **Estado**: PENDIENTE - Requiere solución técnica específica
-  - **Prioridad**: MEDIA - Sistema funciona perfecto sin esto
-  - **Recomendación**: Implementar en ambiente separado primero
-
-### **Funcionalidades Adicionales:**
-- 📊 **Reportes**: Exportar datos a Excel/CSV
-- 📱 **Códigos de barras**: Generación y escaneo automático
-- 🏢 **Proveedores**: Gestión completa de proveedores
-- 📋 **Categorías**: CRUD de categorías personalizadas
-- 👥 **Roles y permisos**: Admin, Usuario, Solo lectura
-
-### **Técnicas:**
-- ✅ **PWA**: Aplicación web progresiva
-- ✅ **Offline**: Funcionalidad sin internet
-- ✅ **Push notifications**: Notificaciones del navegador
-- ✅ **PDF real**: Librería jsPDF
-- ✅ **Gráficos**: Charts.js para analytics
+### **Deploy:**
+- **Automático:** Push a `main` → Vercel deploy
+- **Manual:** `npm run build` → Upload dist/
 
 ---
 
 ## 📞 **CONTACTO Y SOPORTE**
 
-### **Versión Actual**: 2.0.0 (Sistema Empresarial Completo)
-### **Última Actualización**: 11 de Septiembre, 2025
-### **Commit Actual**: `3d6cd81` (Problema Scroll Solucionado)
-### **Estado**: ✅ 100% Funcional y Estable
+**Desarrollador:** Raúl Jaime Pivet Álvarez  
+**Email:** [Contacto disponible en la aplicación]  
+**GitHub:** https://github.com/Sinsapiar1/InventarioAmigable  
+**Deploy:** https://inventario-amigable.vercel.app  
+
+### **Estado del Proyecto:**
+- ✅ **Producción:** Completamente funcional
+- ✅ **Testing:** Casos principales cubiertos
+- ✅ **Documentation:** Completa y actualizada
+- ✅ **Deploy:** Automático y estable
 
 ---
 
-## ⚡ **RESUMEN EJECUTIVO**
+## 🏆 **RESUMEN EJECUTIVO**
 
-**El Sistema de Inventario Pro es una aplicación web empresarial completa que permite:**
+**El Sistema de Inventario Pro es una aplicación web completa y funcional que ofrece:**
 
-1. **Gestión completa de inventarios** con múltiples almacenes por usuario
-2. **Colaboración entre usuarios** con sistema de amigos y solicitudes
-3. **Transferencias profesionales** con aprobación y PDFs automáticos
-4. **Notificaciones en tiempo real** para todas las operaciones
-5. **Validaciones robustas** que previenen errores de stock y datos
-6. **Interfaz responsive** que funciona perfectamente en todos los dispositivos
-7. **Sistema de traspasos** con solicitud → aprobación → ejecución → documento
-8. **Números enteros exactos** sin problemas de decimales o scroll
+- 🏭 **Multi-almacén** con gestión independiente
+- 👥 **Colaboración** entre usuarios con traspasos
+- 📊 **Toma de inventario** con import/export masivo
+- 🔄 **Movimientos** completos con trazabilidad
+- 📱 **Responsive** para todos los dispositivos
+- 🔔 **Notificaciones** en tiempo real
+- 📄 **PDFs** automáticos para traspasos
+- ⚙️ **Configuración** flexible por usuario
 
-**Es un sistema nivel empresarial 100% funcional, estable y listo para producción.**
+**Tecnológicamente robusto, con arquitectura escalable y diseño empresarial.**
 
-### **🔐 Nota sobre Verificación Email:**
-Se intentó implementar verificación por email 3 veces, pero cada intento rompía el login de usuarios existentes. La funcionalidad actual permite registro libre pero el sistema es completamente funcional sin esta verificación. Se recomienda implementar en futuras versiones con ambiente de testing dedicado.
+**ESTADO: ✅ LISTO PARA PRODUCCIÓN**
+
+---
+
+*Documentación actualizada: Enero 2025*  
+*Versión del sistema: 2.0*  
+*Última actualización de funcionalidades: Import/Export masivo + Multi-almacén completo*
