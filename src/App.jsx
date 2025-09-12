@@ -33,7 +33,7 @@ import {
 function AppContent() {
   const { currentUser, logout, userProfile } = useAuth();
   const { activeWarehouse, warehouses, getActiveWarehouse, changeActiveWarehouse } = useWarehouse();
-  const { isDark } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const [currentView, setCurrentView] = useState('dashboard');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
