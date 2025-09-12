@@ -26,8 +26,11 @@ import {
   Settings,
   TrendingUp,
   Sun,
-  Moon
+  Moon,
+  AlertTriangle
 } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
 // Componente principal de la aplicación
 function AppContent() {
@@ -45,6 +48,7 @@ function AppContent() {
   const [showWarehouseManager, setShowWarehouseManager] = useState(false);
   const [showFriendsManager, setShowFriendsManager] = useState(false);
   const [showTransferManager, setShowTransferManager] = useState(false);
+  const [mobileStats, setMobileStats] = useState({ totalProducts: 0, lowStockAlerts: 0 });
 
   // Detectar si es móvil
   useEffect(() => {
@@ -56,6 +60,13 @@ function AppContent() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Cargar estadísticas móviles
+  useEffect(() => {
+    if (currentUser && activeWarehouse) {
+      loadMobileStats();
+    }
+  }, [currentUser, activeWarehouse]);
 
 
   // Cerrar menú móvil cuando se cambia de vista
@@ -153,6 +164,49 @@ function AppContent() {
         return <Dashboard />;
     }
   };
+
+  // Cargar estadísticas para cards móviles
+  const loadMobileStats = async () => {
+    if (!currentUser || !activeWarehouse) return;
+
+    try {
+      const { collection, getDocs } = await import('firebase/firestore');
+      const { db } = await import('../firebase');
+      
+      const productosRef = collection(
+        db,
+        'usuarios',
+        currentUser.uid,
+        'almacenes',
+        activeWarehouse,
+        'productos'
+      );
+      const snapshot = await getDocs(productosRef);
+      
+      let totalProducts = 0;
+      let lowStockAlerts = 0;
+      
+      snapshot.forEach((doc) => {
+        const product = doc.data();
+        totalProducts++;
+        
+        if ((product.cantidadActual || 0) <= (product.cantidadMinima || 5)) {
+          lowStockAlerts++;
+        }
+      });
+
+      setMobileStats({ totalProducts, lowStockAlerts });
+    } catch (error) {
+      console.error('Error cargando estadísticas móviles:', error);
+    }
+  };
+
+  // Cargar estadísticas al cambiar almacén
+  useEffect(() => {
+    if (currentUser && activeWarehouse) {
+      loadMobileStats();
+    }
+  }, [currentUser, activeWarehouse]);
 
   // Obtener vista actual
   const currentViewData = navigationItems.find(item => item.id === currentView);
@@ -504,28 +558,28 @@ function AppContent() {
                       <p className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Productos</p>
                     </div>
                     <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {warehouses.find(w => w.id === activeWarehouse)?.productCount || '0'}
+                      {mobileStats.totalProducts}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      en {getActiveWarehouse()?.nombre}
+                    <p className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                      en almacén
                     </p>
                   </button>
                   
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      setCurrentView('products'); // Ir a productos con filtro de stock bajo
+                      setCurrentView('products');
                     }}
                     className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg p-3 border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left`}
                   >
                     <div className="flex items-center space-x-2 mb-1">
                       <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
-                      <p className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Alertas</p>
+                      <p className={`text-xs font-medium ${isDark ? 'text-gray-200' : 'text-gray-600'}`}>Alertas</p>
                     </div>
-                    <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>
-                      {notifications.filter(n => n.tipo === 'stock-bajo').length || '0'}
+                    <p className={`text-lg font-bold ${isDark ? 'text-orange-300' : 'text-orange-600'}`}>
+                      {mobileStats.lowStockAlerts}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                       stock bajo
                     </p>
                   </button>

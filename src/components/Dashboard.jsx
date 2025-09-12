@@ -636,11 +636,11 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            <span className="font-medium text-blue-600 dark:text-blue-400">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
+          <p className="text-gray-600 dark:text-gray-200 mt-1">
+            <span className="font-medium text-blue-600 dark:text-blue-300">{getActiveWarehouse().nombre}</span> • Última actualización: {new Date().toLocaleTimeString('es-ES')}
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 hidden sm:block">
-            Sistema desarrollado por <span className="font-medium text-gray-500 dark:text-gray-400">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
+          <p className="text-xs text-gray-500 dark:text-gray-300 mt-2 hidden sm:block">
+            Sistema desarrollado por <span className="font-medium text-gray-600 dark:text-gray-200">Raúl Jaime Pivet Álvarez</span> • Full Stack Developer
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center space-x-3">
@@ -749,7 +749,7 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-blue">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Productos</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Total Productos</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalProductos}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10">
@@ -766,7 +766,7 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-orange">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Stock Bajo</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Stock Bajo</p>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 dark:text-orange-400">{stats.productosConStockBajo}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 rounded-lg flex items-center justify-center">
@@ -784,7 +784,7 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-green">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Valor Total</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Valor Total</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400 dark:text-green-400">
                 {formatCurrency(stats.valorTotalInventario)}
               </p>
@@ -803,7 +803,7 @@ const Dashboard = () => {
         <div className="stat-card stat-accent-purple">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Actividad</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-200">Actividad</p>
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 dark:text-purple-400">{stats.movimientosHoy}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg flex items-center justify-center">
@@ -840,9 +840,9 @@ const Dashboard = () => {
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 dark:text-white">{producto.nombre}</h4>
                       <div className="flex items-center space-x-2 mt-1">
-                        <p className="text-sm text-gray-600 dark:text-gray-300">SKU: {producto.sku}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-200">SKU: {producto.sku}</p>
                         <span className="text-gray-400 dark:text-gray-500">•</span>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{producto.categoria}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-200">{producto.categoria}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -879,7 +879,7 @@ const Dashboard = () => {
                   <div key={producto.id} className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50 rounded-lg">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 dark:text-white">{producto.nombre}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">SKU: {producto.sku}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-200">SKU: {producto.sku}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-orange-600 dark:text-orange-400 dark:text-orange-400">{producto.cantidadActual || 0}</p>
