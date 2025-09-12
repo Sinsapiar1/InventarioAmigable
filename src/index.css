@@ -5,6 +5,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark mode base styles */
+@layer base {
+  html {
+    @apply transition-colors duration-300;
+  }
+  
+  .dark {
+    color-scheme: dark;
+  }
+  
+  .light {
+    color-scheme: light;
+  }
+}
+
 /* Variables CSS personalizadas */
 :root {
   --primary-50: #eff6ff;
@@ -29,22 +44,27 @@ body {
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 min-h-[40px];
+    @apply dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center px-4 py-2 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 min-h-[40px];
+    @apply dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 dark:focus:ring-gray-400;
   }
 
   .input-field {
     @apply block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors duration-200 min-h-[40px];
+    @apply dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:disabled:bg-gray-800;
   }
 
   .card {
     @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
+    @apply dark:bg-gray-800 dark:border-gray-700;
   }
 
   .stat-card {
     @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200;
+    @apply dark:bg-gray-800 dark:border-gray-700 dark:hover:shadow-lg;
   }
 }
 

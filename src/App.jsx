@@ -377,7 +377,7 @@ function AppContent() {
           ${isMobile ? 'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out' : 'relative'}
           ${isMobile && !isMobileMenuOpen ? '-translate-x-full' : 'translate-x-0'}
           ${isMobile ? 'w-80' : 'w-64'}
-          bg-white shadow-lg border-r border-gray-200 min-h-screen
+          ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-lg border-r min-h-screen
         `}>
 
           <div className={`${isMobile ? 'relative z-20' : ''} h-full`}>
