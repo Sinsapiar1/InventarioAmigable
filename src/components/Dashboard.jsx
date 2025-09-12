@@ -746,13 +746,13 @@ const Dashboard = () => {
       {/* Estadísticas principales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Total Productos */}
-        <div className="stat-card">
+        <div className="stat-card stat-accent-blue">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Productos</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalProductos}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Productos</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalProductos}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center transition-colors">
               <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
@@ -763,13 +763,13 @@ const Dashboard = () => {
         </div>
 
         {/* Stock Bajo */}
-        <div className="stat-card">
+        <div className="stat-card stat-accent-orange">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Stock Bajo</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.productosConStockBajo}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Stock Bajo</p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.productosConStockBajo}</p>
             </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-orange-600" />
             </div>
           </div>
@@ -781,15 +781,15 @@ const Dashboard = () => {
         </div>
 
         {/* Valor Total */}
-        <div className="stat-card">
+        <div className="stat-card stat-accent-green">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Valor Total</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Valor Total</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(stats.valorTotalInventario)}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-green-600" />
             </div>
           </div>
@@ -800,13 +800,13 @@ const Dashboard = () => {
         </div>
 
         {/* Actividad */}
-        <div className="stat-card">
+        <div className="stat-card stat-accent-purple">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Actividad</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.movimientosHoy}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Actividad</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.movimientosHoy}</p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
               <BarChart className="w-6 h-6 text-purple-600" />
             </div>
           </div>
@@ -890,7 +890,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Package className="w-6 h-6 text-green-600" />
                 </div>
                 <p className="text-green-600 font-medium">Todo el stock está en niveles óptimos</p>
@@ -950,7 +950,7 @@ const Dashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             movimiento.tipoMovimiento === 'entrada' 
-                              ? 'bg-green-100 text-green-800' 
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800' 
                               : movimiento.tipoMovimiento === 'salida'
                               ? 'bg-red-100 text-red-800'
                               : 'bg-blue-100 text-blue-800'
@@ -989,7 +989,7 @@ const Dashboard = () => {
                       <div className="flex items-center space-x-2 ml-2">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           movimiento.tipoMovimiento === 'entrada' 
-                            ? 'bg-green-100 text-green-800' 
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800' 
                             : movimiento.tipoMovimiento === 'salida'
                             ? 'bg-red-100 text-red-800'
                             : 'bg-blue-100 text-blue-800'
@@ -1139,7 +1139,7 @@ const Dashboard = () => {
                                     ? 'bg-red-100 text-red-800'
                                     : product.cantidadActual === 0
                                     ? 'bg-gray-100 text-gray-800'
-                                    : 'bg-green-100 text-green-800'
+                                    : 'bg-green-100 dark:bg-green-900/30 text-green-800'
                                 }`}>
                                   {isLowStock ? 'Stock Bajo' : product.cantidadActual === 0 ? 'Sin Stock' : 'Disponible'}
                                 </span>
@@ -1171,7 +1171,7 @@ const Dashboard = () => {
                                 ? 'bg-red-100 text-red-800'
                                 : product.cantidadActual === 0
                                 ? 'bg-gray-100 text-gray-800'
-                                : 'bg-green-100 text-green-800'
+                                : 'bg-green-100 dark:bg-green-900/30 text-green-800'
                             }`}>
                               {isLowStock ? 'Stock Bajo' : product.cantidadActual === 0 ? 'Sin Stock' : 'Disponible'}
                             </span>
@@ -1322,7 +1322,7 @@ const Dashboard = () => {
                                 <div className="flex flex-col">
                                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${
                                     movement.tipoMovimiento === 'entrada' 
-                                      ? 'bg-green-100 text-green-800'
+                                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800'
                                       : movement.tipoMovimiento === 'salida'
                                       ? 'bg-red-100 text-red-800'
                                       : 'bg-blue-100 text-blue-800'
@@ -1393,7 +1393,7 @@ const Dashboard = () => {
                             </div>
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               movement.tipoMovimiento === 'entrada' 
-                                ? 'bg-green-100 text-green-800'
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800'
                                 : movement.tipoMovimiento === 'salida'
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-blue-100 text-blue-800'

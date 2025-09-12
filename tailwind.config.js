@@ -23,6 +23,9 @@ export default {
           800: '#1e40af',
           900: '#1e3a8a',
         },
+        gray: {
+          850: '#1f2937', // Color intermedio entre 800 y 900
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
