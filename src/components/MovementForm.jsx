@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWarehouse } from '../contexts/WarehouseContext';
-import { sendPushNotification } from '../services/pushNotifications';
+// import { sendPushNotification } from '../services/pushNotifications'; // Temporalmente deshabilitado
 import {
   collection,
   doc,
@@ -610,24 +610,24 @@ const MovementForm = () => {
             const notificacionRef = doc(collection(db, 'notificaciones'));
             transaction.set(notificacionRef, notificacionData);
 
-            // 📲 ENVIAR PUSH NOTIFICATION DESPUÉS DE LA TRANSACCIÓN
-            setTimeout(async () => {
-              try {
-                await sendPushNotification(
-                  usuarioDestinoId,
-                  '📦 Nueva Solicitud de Traspaso',
-                  `${userProfile?.nombreCompleto || 'Usuario'} te envió ${cantidadFinal} ${producto.nombre}`,
-                  {
-                    type: 'transfer_request',
-                    solicitudId: solicitudRef.id,
-                    action: 'view_transfers'
-                  }
-                );
-                console.log('📲 Push notification enviada para traspaso');
-              } catch (pushError) {
-                console.log('📱 Push notification falló (no crítico):', pushError);
-              }
-            }, 1000); // Delay de 1 segundo para asegurar que la transacción se complete
+            // 📲 PUSH NOTIFICATION - Temporalmente deshabilitada
+            // setTimeout(async () => {
+            //   try {
+            //     await sendPushNotification(
+            //       usuarioDestinoId,
+            //       '📦 Nueva Solicitud de Traspaso',
+            //       `${userProfile?.nombreCompleto || 'Usuario'} te envió ${cantidadFinal} ${producto.nombre}`,
+            //       {
+            //         type: 'transfer_request',
+            //         solicitudId: solicitudRef.id,
+            //         action: 'view_transfers'
+            //       }
+            //     );
+            //     console.log('📲 Push notification enviada para traspaso');
+            //   } catch (pushError) {
+            //     console.log('📱 Push notification falló (no crítico):', pushError);
+            //   }
+            // }, 1000);
           }
         }
       });
