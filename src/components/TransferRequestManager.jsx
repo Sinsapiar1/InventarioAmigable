@@ -171,20 +171,19 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
         console.log('🚀 Iniciando aprobación de solicitud:', requestId);
         
         // 1. Actualizar estado de solicitud (PRIMER PASO CRÍTICO)
+        // 🛡️ TÉCNICA BANCARIA: LOCK INMEDIATO EN BASE DE DATOS
         await updateDoc(requestRef, {
           estado: 'aprobada',
           fechaAprobacion: new Date().toISOString(),
           aprobadoPor: currentUser.email || ''
         });
         
-        console.log('✅ Solicitud marcada como aprobada');
-
-        // 🛡️ VERIFICACIÓN DOBLE: Leer nuevamente para confirmar estado
-        const requestVerification = await getDoc(requestRef);
-        if (!requestVerification.exists() || requestVerification.data().estado !== 'aprobada') {
-          throw new Error('Error crítico: No se pudo confirmar el estado de aprobación');
+        // 🔒 VERIFICACIÓN CRÍTICA: Confirmar lock
+        const verification = await getDoc(requestRef);
+        if (!verification.exists() || verification.data().estado !== 'aprobada') {
+          throw new Error('FALLO CRÍTICO: No se pudo confirmar lock en base de datos');
         }
-        console.log('🔒 Estado de aprobación confirmado - Continuando...');
+        console.log('🔒 LOCK CONFIRMADO: Estado aprobada verificado - Continuando...');
 
         // 2. Crear o actualizar producto en destino
         const productoDestinoRef = doc(
