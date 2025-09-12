@@ -274,7 +274,7 @@ function AppContent() {
                             <button
                               onClick={() => {
                                 setShowNotifications(false);
-                                changeView('products');
+                                setCurrentView('products');
                               }}
                               className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 flex items-center space-x-2"
                             >
@@ -285,7 +285,7 @@ function AppContent() {
                             <button
                               onClick={() => {
                                 setShowNotifications(false);
-                                changeView('movements');
+                                setCurrentView('movements');
                               }}
                               className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 flex items-center space-x-2"
                             >
@@ -296,7 +296,7 @@ function AppContent() {
                             <button
                               onClick={() => {
                                 setShowNotifications(false);
-                                changeView('inventory');
+                                setCurrentView('inventory');
                               }}
                               className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 flex items-center space-x-2"
                             >

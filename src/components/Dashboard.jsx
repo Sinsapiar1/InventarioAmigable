@@ -333,7 +333,7 @@ const Dashboard = () => {
     let detallesInteligentes = '';
     
     // Información inteligente según el tipo de movimiento
-    if (subTipo.includes('traspaso')) {
+    if (subTipo.includes('traspaso') || subTipo.includes('Traspaso')) {
       if (subTipo.includes('externo')) {
         // Traspaso externo - extraer información del razón
         if (razon.includes('→')) {
@@ -347,9 +347,21 @@ const Dashboard = () => {
           ? razon.split('desde ')[1]?.trim() || 'Otro almacén'
           : 'Almacén interno';
         detallesInteligentes = `Traspaso entre almacenes propios`;
+      } else if (subTipo === 'Traspaso a otro almacén') {
+        // Traspaso interno - detectar por subTipo específico
+        if (tipoMovimiento === 'salida') {
+          origenDestino = 'Almacén destino';
+          detallesInteligentes = `Envío a otro almacén • ${razon || 'Traspaso interno'}`;
+        } else {
+          origenDestino = 'Almacén origen';
+          detallesInteligentes = `Recibido de otro almacén • ${razon || 'Traspaso interno'}`;
+        }
+      } else if (subTipo === 'Traspaso desde otro almacén') {
+        origenDestino = 'Almacén origen';
+        detallesInteligentes = `Recibido de otro almacén • ${razon || 'Traspaso interno'}`;
       } else {
         origenDestino = 'Traspaso interno';
-        detallesInteligentes = subTipo;
+        detallesInteligentes = `${subTipo} • ${razon || 'Entre almacenes'}`;
       }
     } else if (subTipo.includes('importacion')) {
       origenDestino = 'Importación masiva';
@@ -830,29 +842,29 @@ const Dashboard = () => {
               {fullHistory.length > 0 ? (
                 <>
                   {/* Vista Desktop */}
-                  <div className="hidden lg:block overflow-x-auto">
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Fecha
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Producto
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Operación
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Cantidad
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                             Stock
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Origen/Destino
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">
                             Detalles
                           </th>
                         </tr>
@@ -863,12 +875,11 @@ const Dashboard = () => {
                           
                           return (
                             <tr key={movement.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div>
+                              <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                <div className="text-xs">
                                   {movement.fecha.toLocaleDateString('es-ES', {
                                     day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric'
+                                    month: '2-digit'
                                   })}
                                 </div>
                                 <div className="text-xs text-gray-500">
@@ -878,17 +889,17 @@ const Dashboard = () => {
                                   })}
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
+                              <td className="px-3 py-2">
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
+                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[120px]" title={movement.productoNombre}>
                                     {movement.productoNombre}
                                   </div>
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-gray-500 truncate max-w-[120px]">
                                     {movement.productoSKU}
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
+                              <td className="px-3 py-2 whitespace-nowrap">
                                 <div className="flex flex-col">
                                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${
                                     movement.tipoMovimiento === 'entrada' 
@@ -899,12 +910,12 @@ const Dashboard = () => {
                                   }`}>
                                     {movement.tipoMovimiento}
                                   </span>
-                                  <div className="text-xs text-gray-500 mt-1">
+                                  <div className="text-xs text-gray-500 mt-1 truncate max-w-[100px]" title={movement.subTipo}>
                                     {movement.subTipo}
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <td className="px-3 py-2 whitespace-nowrap text-sm">
                                 <span className={`font-bold ${
                                   movement.tipoMovimiento === 'entrada' 
                                     ? 'text-green-600'
@@ -916,24 +927,24 @@ const Dashboard = () => {
                                   {movement.cantidad}
                                 </span>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
                                 <div className="flex items-center space-x-1">
-                                  <span className="text-gray-500">{movement.stockAnterior}</span>
+                                  <span className="text-gray-500 text-xs">{movement.stockAnterior}</span>
                                   <ArrowRight className="w-3 h-3 text-gray-400" />
-                                  <span className="font-medium">{movement.stockNuevo}</span>
+                                  <span className="font-medium text-xs">{movement.stockNuevo}</span>
                                 </div>
                               </td>
-                              <td className="px-6 py-4">
+                              <td className="px-3 py-2">
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[120px]" title={origenDestino}>
                                     {origenDestino}
                                   </div>
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-gray-500 truncate max-w-[120px]" title={movement.creadoPor}>
                                     {movement.creadoPor}
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                              <td className="px-3 py-2 text-sm text-gray-900 max-w-xs hidden xl:table-cell">
                                 <div className="truncate" title={detallesInteligentes}>
                                   {detallesInteligentes}
                                 </div>
@@ -946,7 +957,7 @@ const Dashboard = () => {
                   </div>
                   
                   {/* Vista Móvil */}
-                  <div className="lg:hidden space-y-4 p-4">
+                  <div className="md:hidden space-y-4 p-4">
                     {fullHistory.map((movement) => {
                       const { origenDestino, detallesInteligentes } = getMovementDetails(movement);
                       
