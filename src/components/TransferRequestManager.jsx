@@ -156,17 +156,19 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
 
       const requestData = requestDoc.data();
       
-      // Verificar que la solicitud esté en estado pendiente
+      // 🛡️ VERIFICACIÓN CRÍTICA: Solo procesar si está pendiente
       if (requestData.estado !== 'pendiente') {
-        console.log('⚠️ Solicitud ya procesada, estado actual:', requestData.estado);
-        throw new Error('Esta solicitud ya fue procesada');
+        console.log('⚠️ PROTECCIÓN ACTIVADA: Solicitud ya procesada, estado:', requestData.estado);
+        throw new Error('Esta solicitud ya fue procesada. No se puede procesar múltiples veces.');
       }
+
+      console.log('✅ Solicitud válida para procesar, estado: pendiente');
 
       if (action === 'approve') {
         // APROBAR: Usar operaciones separadas (más seguro que transacción compleja)
         console.log('🚀 Iniciando aprobación de solicitud:', requestId);
         
-        // 1. Actualizar estado de solicitud
+        // 1. Actualizar estado de solicitud (PRIMER PASO CRÍTICO)
         await updateDoc(requestRef, {
           estado: 'aprobada',
           fechaAprobacion: new Date().toISOString(),
@@ -174,6 +176,13 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
         });
         
         console.log('✅ Solicitud marcada como aprobada');
+
+        // 🛡️ VERIFICACIÓN DOBLE: Leer nuevamente para confirmar estado
+        const requestVerification = await getDoc(requestRef);
+        if (!requestVerification.exists() || requestVerification.data().estado !== 'aprobada') {
+          throw new Error('Error crítico: No se pudo confirmar el estado de aprobación');
+        }
+        console.log('🔒 Estado de aprobación confirmado - Continuando...');
 
         // 2. Crear o actualizar producto en destino
         const productoDestinoRef = doc(
