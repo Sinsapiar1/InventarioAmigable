@@ -45,7 +45,12 @@ const InventoryTaking = () => {
   useEffect(() => {
     if (currentUser && activeWarehouse) {
       setSelectedWarehouse(activeWarehouse);
-      loadProducts();
+      // Solo cargar si estamos en modo específico y tenemos almacén, o si estamos en modo general
+      if (inventoryMode === 'specific' && activeWarehouse) {
+        loadProducts();
+      } else if (inventoryMode === 'general') {
+        loadProducts();
+      }
     }
   }, [currentUser, activeWarehouse]);
 
@@ -476,22 +481,26 @@ const InventoryTaking = () => {
       
       Object.keys(inventoryData).forEach((key) => {
         const data = inventoryData[key];
+        if (!data) return; // Skip si no hay data
+        
         const [sku] = key.split('_');
         
-        // Filtrar por búsqueda
-        if (
-          data.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          data.almacenNombre.toLowerCase().includes(searchTerm.toLowerCase())
-        ) {
+        // Filtrar por búsqueda (con validaciones de undefined)
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = !searchTerm || 
+          (data.nombre && data.nombre.toLowerCase().includes(searchLower)) ||
+          (sku && sku.toLowerCase().includes(searchLower)) ||
+          (data.almacenNombre && data.almacenNombre.toLowerCase().includes(searchLower));
+          
+        if (matchesSearch) {
           // Filtrar por discrepancias si está activado
           if (!showDiscrepancies || (data.checked && data.diferencia !== 0)) {
             items.push({
               key: key,
-              sku: sku,
-              nombre: data.nombre,
-              almacenNombre: data.almacenNombre,
-              cantidadSistema: data.cantidadSistema,
+              sku: sku || 'Sin SKU',
+              nombre: data.nombre || 'Sin nombre',
+              almacenNombre: data.almacenNombre || 'Sin almacén',
+              cantidadSistema: data.cantidadSistema || 0,
               ...data
             });
           }
