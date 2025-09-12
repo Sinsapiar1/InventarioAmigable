@@ -138,6 +138,7 @@ const SettingsPanel = ({ isOpen, onClose, onOpenWarehouseManager, onOpenFriendsM
                         type="number"
                         value={settings.stockMinimoGlobal}
                         onChange={(e) => handleSettingChange('stockMinimoGlobal', parseInt(e.target.value) || 5)}
+                        onWheel={(e) => e.target.blur()}
                         className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         min="1"
                         max="1000"

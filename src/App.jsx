@@ -259,10 +259,50 @@ function AppContent() {
                           </div>
                         ))
                       ) : (
-                        <div className="p-8 text-center">
-                          <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                          <p className="text-gray-500">No hay notificaciones</p>
-                          <p className="text-sm text-gray-400 mt-1">Las notificaciones aparecerán aquí</p>
+                        <div className="p-6">
+                          <div className="text-center mb-6">
+                            <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500 font-medium">¡Todo al día!</p>
+                            <p className="text-sm text-gray-400 mt-1">No tienes notificaciones pendientes</p>
+                          </div>
+                          
+                          {/* Accesos rápidos útiles */}
+                          <div className="space-y-2 border-t pt-4">
+                            <p className="text-xs font-medium text-gray-700 mb-3">ACCESOS RÁPIDOS:</p>
+                            
+                            <button
+                              onClick={() => {
+                                setShowNotifications(false);
+                                changeView('products');
+                              }}
+                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 flex items-center space-x-2"
+                            >
+                              <Package className="w-4 h-4 text-blue-500" />
+                              <span>Ver productos con stock bajo</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                setShowNotifications(false);
+                                changeView('movements');
+                              }}
+                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 flex items-center space-x-2"
+                            >
+                              <TrendingUp className="w-4 h-4 text-green-500" />
+                              <span>Registrar movimiento</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                setShowNotifications(false);
+                                changeView('inventory');
+                              }}
+                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-700 flex items-center space-x-2"
+                            >
+                              <Clipboard className="w-4 h-4 text-purple-500" />
+                              <span>Tomar inventario</span>
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>

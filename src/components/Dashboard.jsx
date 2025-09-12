@@ -26,7 +26,8 @@ import {
   RefreshCw,
   Calendar,
   BarChart,
-  Clipboard
+  Clipboard,
+  X
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -47,6 +48,8 @@ const Dashboard = () => {
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [error, setError] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showFullHistory, setShowFullHistory] = useState(false);
+  const [fullHistory, setFullHistory] = useState([]);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -283,6 +286,42 @@ const Dashboard = () => {
     setRefreshing(true);
     await loadDashboardData();
     setRefreshing(false);
+  };
+
+  // Cargar historial completo con más detalles
+  const loadFullHistory = async () => {
+    if (!currentUser || !activeWarehouse) return;
+
+    try {
+      const movimientosRef = collection(db, 'movimientos');
+      const snapshot = await getDocs(movimientosRef);
+      
+      const movimientos = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        // Filtrar por usuario y almacén activo
+        if (data.usuarioId === currentUser.uid && data.almacenId === activeWarehouse) {
+          movimientos.push({
+            id: doc.id,
+            ...data,
+            fecha: data.fecha ? new Date(data.fecha) : new Date()
+          });
+        }
+      });
+
+      // Ordenar por fecha (más recientes primero)
+      movimientos.sort((a, b) => b.fecha - a.fecha);
+      
+      setFullHistory(movimientos);
+    } catch (error) {
+      console.error('Error cargando historial completo:', error);
+    }
+  };
+
+  // Función para mostrar historial completo
+  const handleShowFullHistory = async () => {
+    setShowFullHistory(true);
+    await loadFullHistory();
   };
 
   // Formatear números a moneda
@@ -598,7 +637,10 @@ const Dashboard = () => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Actividad Reciente</h3>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <button 
+              onClick={handleShowFullHistory}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
               Ver historial completo
             </button>
           </div>
@@ -713,6 +755,149 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de Historial Completo */}
+      {showFullHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Historial Completo - {getActiveWarehouse()?.nombre}
+                </h2>
+                <button
+                  onClick={() => setShowFullHistory(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="overflow-auto max-h-[70vh]">
+              {fullHistory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Fecha
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Producto
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Tipo
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Detalle
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Cantidad
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Stock
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Usuario
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Razón
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {fullHistory.map((movement) => (
+                        <tr key={movement.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {movement.fecha.toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {movement.productoNombre}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                SKU: {movement.productoSKU}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              movement.tipoMovimiento === 'entrada' 
+                                ? 'bg-green-100 text-green-800'
+                                : movement.tipoMovimiento === 'salida'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {movement.tipoMovimiento}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            {movement.subTipo}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={
+                              movement.tipoMovimiento === 'entrada' 
+                                ? 'text-green-600 font-medium'
+                                : movement.tipoMovimiento === 'salida'
+                                ? 'text-red-600 font-medium'
+                                : 'text-blue-600 font-medium'
+                            }>
+                              {movement.tipoMovimiento === 'entrada' ? '+' : movement.tipoMovimiento === 'salida' ? '-' : '±'}
+                              {movement.cantidad}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {movement.stockAnterior} → {movement.stockNuevo}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {movement.creadoPor}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                            {movement.razon}
+                            {movement.observaciones && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                {movement.observaciones}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No hay movimientos registrados</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Los movimientos aparecerán aquí una vez que empieces a usar el sistema
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>Total de movimientos: {fullHistory.length}</span>
+                <button
+                  onClick={() => setShowFullHistory(false)}
+                  className="btn-secondary"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

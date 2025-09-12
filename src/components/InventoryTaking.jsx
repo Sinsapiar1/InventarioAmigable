@@ -1200,6 +1200,7 @@ const InventoryTaking = () => {
                                   e.target.value
                                 )
                               }
+                              onWheel={(e) => e.target.blur()}
                               className="w-20 px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               min="0"
                               step="1"

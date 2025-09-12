@@ -735,6 +735,7 @@ const ProductForm = () => {
                     name="cantidadActual"
                     value={formData.cantidadActual}
                     onChange={handleInputChange}
+                    onWheel={(e) => e.target.blur()}
                     className="input-field"
                     min="0"
                     step="1"
@@ -763,6 +764,7 @@ const ProductForm = () => {
                   name="cantidadMinima"
                   value={formData.cantidadMinima}
                   onChange={handleInputChange}
+                  onWheel={(e) => e.target.blur()}
                   className="input-field"
                   min="0"
                   step="1"
@@ -792,6 +794,7 @@ const ProductForm = () => {
                     name="precioVenta"
                     value={formData.precioVenta}
                     onChange={handleInputChange}
+                    onWheel={(e) => e.target.blur()}
                     className="input-field pl-10"
                     min="0"
                     step="0.01"
@@ -813,6 +816,7 @@ const ProductForm = () => {
                     name="precioCompra"
                     value={formData.precioCompra}
                     onChange={handleInputChange}
+                    onWheel={(e) => e.target.blur()}
                     className="input-field pl-10"
                     min="0"
                     step="0.01"
