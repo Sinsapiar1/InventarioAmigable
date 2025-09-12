@@ -492,14 +492,43 @@ function AppContent() {
               {/* Stats rápidas en móvil */}
               {isMobile && (
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="bg-white rounded-lg p-3 border border-gray-200">
-                    <p className="text-xs text-gray-500">Productos</p>
-                    <p className="text-lg font-semibold text-gray-900">--</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-gray-200">
-                    <p className="text-xs text-gray-500">Alertas</p>
-                    <p className="text-lg font-semibold text-orange-600">--</p>
-                  </div>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setCurrentView('products');
+                    }}
+                    className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg p-3 border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left`}
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Package className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                      <p className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Productos</p>
+                    </div>
+                    <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {warehouses.find(w => w.id === activeWarehouse)?.productCount || '0'}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      en {getActiveWarehouse()?.nombre}
+                    </p>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setCurrentView('products'); // Ir a productos con filtro de stock bajo
+                    }}
+                    className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg p-3 border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left`}
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
+                      <p className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Alertas</p>
+                    </div>
+                    <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>
+                      {notifications.filter(n => n.tipo === 'stock-bajo').length || '0'}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      stock bajo
+                    </p>
+                  </button>
                 </div>
               )}
 
