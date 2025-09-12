@@ -134,10 +134,19 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
   };
 
   const respondToRequest = async (requestId, action) => {
+    // Prevenir múltiples clics verificando si ya se está procesando
+    if (processingRequest === requestId) {
+      console.log('⚠️ Solicitud ya en procesamiento, ignorando clic adicional');
+      return;
+    }
+
     try {
       // Prevenir doble clic específico para esta solicitud
       setProcessingRequest(requestId);
       console.log('🚀 Iniciando procesamiento de solicitud:', requestId, action);
+
+      // Optimistic update: remover de pendientes inmediatamente
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
       const requestRef = doc(db, 'solicitudes-traspaso', requestId);
       const requestDoc = await getDoc(requestRef);
       
@@ -146,6 +155,12 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
       }
 
       const requestData = requestDoc.data();
+      
+      // Verificar que la solicitud esté en estado pendiente
+      if (requestData.estado !== 'pendiente') {
+        console.log('⚠️ Solicitud ya procesada, estado actual:', requestData.estado);
+        throw new Error('Esta solicitud ya fue procesada');
+      }
 
       if (action === 'approve') {
         // APROBAR: Usar operaciones separadas (más seguro que transacción compleja)
@@ -318,6 +333,13 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
       await loadTransferRequests();
     } catch (error) {
       console.error('Error procesando solicitud:', error);
+      
+      // Restaurar solicitud en pendientes si falló (excepto si ya fue procesada)
+      if (error.message !== 'Esta solicitud ya fue procesada') {
+        // Recargar solicitudes para obtener estado actual
+        loadTransferRequests();
+      }
+      
       if (window.showError) {
         window.showError('Error al procesar la solicitud: ' + error.message);
       }
@@ -859,9 +881,14 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
                                   }
                                 }
                               }}
-                              className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-1"
+                              disabled={processingRequest === request.id}
+                              className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
                             >
-                              <Check className="w-3 h-3" />
+                              {processingRequest === request.id ? (
+                                <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                              ) : (
+                                <Check className="w-3 h-3" />
+                              )}
                               <span>Aprobar</span>
                             </button>
                             <button
