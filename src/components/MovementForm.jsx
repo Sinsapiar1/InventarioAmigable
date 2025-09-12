@@ -10,6 +10,7 @@ import {
   addDoc,
   updateDoc,
   getDoc,
+  setDoc,
   query,
   orderBy,
   where,
@@ -405,8 +406,10 @@ const MovementForm = () => {
       // No necesitamos redondeo para números enteros
       const cantidadFinal = cantidad;
 
-      // Usar transacción con TODOS los reads ANTES de los writes
-      await runTransaction(db, async (transaction) => {
+      // TRANSACCIÓN TEMPORALMENTE DESHABILITADA - QUOTA EXCEEDED
+      // await runTransaction(db, async (transaction) => {
+      
+      // OPERACIONES SIMPLES SIN TRANSACCIÓN (temporal para quota)
         // ===== FASE 1: TODOS LOS READS PRIMERO =====
         
         // Read 1: Producto origen (usar almacén activo)
@@ -419,7 +422,7 @@ const MovementForm = () => {
           'productos',
           formData.productoSKU
         );
-        const productoDoc = await transaction.get(productoRef);
+        const productoDoc = await getDoc(productoRef);
 
         if (!productoDoc.exists()) {
           throw new Error('Producto no encontrado en la base de datos');
@@ -437,7 +440,7 @@ const MovementForm = () => {
             'productos',
             formData.productoSKU
           );
-          productoDestinoDoc = await transaction.get(productoDestinoRef);
+          productoDestinoDoc = await getDoc(productoDestinoRef);
         }
 
         // Read 3 y 4: Para traspasos externos, leer datos del destino
@@ -448,10 +451,10 @@ const MovementForm = () => {
           const [usuarioDestinoId, almacenDestinoId] = formData.almacenDestino.split(':');
           
           const almacenDestinoRef = doc(db, 'usuarios', usuarioDestinoId, 'almacenes', almacenDestinoId);
-          almacenDestinoDoc = await transaction.get(almacenDestinoRef);
+          almacenDestinoDoc = await getDoc(almacenDestinoRef);
           
           const usuarioDestinoRef = doc(db, 'usuarios', usuarioDestinoId);
-          usuarioDestinoDoc = await transaction.get(usuarioDestinoRef);
+          usuarioDestinoDoc = await getDoc(usuarioDestinoRef);
         }
 
         // ===== FASE 2: PROCESAR DATOS =====
@@ -496,7 +499,7 @@ const MovementForm = () => {
         };
 
         const movimientoRef = doc(collection(db, 'movimientos'));
-        transaction.set(movimientoRef, movimientoData);
+        await setDoc(movimientoRef, movimientoData);
         
         // Obtener ID del movimiento para referencias
         const movimientoId = movimientoRef.id;
@@ -532,7 +535,7 @@ const MovementForm = () => {
               fechaActualizacion: new Date().toISOString(),
             };
             
-            transaction.set(productoDestinoRef, nuevoProductoDestino);
+            await setDoc(productoDestinoRef, nuevoProductoDestino);
           }
           
           // Crear movimiento de entrada en almacén destino
@@ -555,7 +558,7 @@ const MovementForm = () => {
           };
           
           const movimientoEntradaRef = doc(collection(db, 'movimientos'));
-          transaction.set(movimientoEntradaRef, movimientoEntradaData);
+          await setDoc(movimientoEntradaRef, movimientoEntradaData);
         }
 
         // Write 4 y 5: Para traspasos externos, crear solicitud y notificación
@@ -596,7 +599,7 @@ const MovementForm = () => {
 
             const solicitudRef = doc(collection(db, 'solicitudes-traspaso'));
             const solicitudId = solicitudRef.id;
-            transaction.set(solicitudRef, solicitudData);
+            await setDoc(solicitudRef, solicitudData);
 
             // Write 4: Crear notificación
             const remitenteNombre = userProfile?.nombreCompleto || currentUser.displayName || 'Usuario';
@@ -616,7 +619,7 @@ const MovementForm = () => {
             };
 
             const notificacionRef = doc(collection(db, 'notificaciones'));
-            transaction.set(notificacionRef, notificacionData);
+            await setDoc(notificacionRef, notificacionData);
 
             // 📲 PUSH NOTIFICATION - Temporalmente deshabilitada
             // setTimeout(async () => {
@@ -638,7 +641,13 @@ const MovementForm = () => {
             // }, 1000);
           }
         }
-      });
+        
+        // Write 2: Actualizar stock del producto origen (FUERA de transacción)
+        await updateDoc(productoRef, {
+          cantidadActual: nuevoStock,
+          fechaActualizacion: new Date().toISOString()
+        });
+      // });
 
       const tipoLabel = formData.tipoMovimiento === 'entrada' ? 'Entrada' : 'Salida';
       const producto = products.find(p => p.sku === formData.productoSKU);

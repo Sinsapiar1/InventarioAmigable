@@ -297,9 +297,10 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
 
       } else if (action === 'reject') {
         // RECHAZAR: Devolver stock al origen
-        await runTransaction(db, async (transaction) => {
+        // TRANSACCIÓN TEMPORALMENTE DESHABILITADA - QUOTA EXCEEDED
+        // await runTransaction(db, async (transaction) => {
           // Read 1: Leer solicitud
-          const requestDocRead = await transaction.get(requestRef);
+          const requestDocRead = await getDoc(requestRef);
           const data = requestDocRead.data();
 
           // Read 2: Leer producto origen para devolver stock
@@ -312,10 +313,10 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
             'productos',
             data.productoSKU
           );
-          const productoOrigenDoc = await transaction.get(productoOrigenRef);
+          const productoOrigenDoc = await getDoc(productoOrigenRef);
 
           // Write 1: Actualizar estado de solicitud
-          transaction.update(requestRef, {
+          await updateDoc(requestRef, {
             estado: 'rechazada',
             fechaRechazo: new Date().toISOString(),
             rechazadoPor: currentUser.email || ''
@@ -327,7 +328,7 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
             const cantidadAnterior = productoOrigen.cantidadActual || 0;
             const cantidadDevuelta = cantidadAnterior + data.cantidad;
 
-            transaction.update(productoOrigenRef, {
+            await updateDoc(productoOrigenRef, {
               cantidadActual: cantidadDevuelta,
               fechaActualizacion: new Date().toISOString()
             });
@@ -352,9 +353,9 @@ const TransferRequestManager = ({ isOpen, onClose }) => {
             };
 
             const movimientoRef = doc(collection(db, 'movimientos'));
-            transaction.set(movimientoRef, movimientoDevolucion);
+            await setDoc(movimientoRef, movimientoDevolucion);
           }
-        });
+        // });
 
         if (window.showWarning) {
           window.showWarning(`❌ Traspaso rechazado. Stock devuelto al usuario origen.`);
