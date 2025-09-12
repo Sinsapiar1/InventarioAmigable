@@ -29,8 +29,7 @@ import {
   Clipboard,
   X,
   ArrowRight,
-  Download,
-  AlertTriangle
+  Download
 } from 'lucide-react';
 
 const Dashboard = () => {
