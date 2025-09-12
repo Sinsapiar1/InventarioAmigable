@@ -821,9 +821,9 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Productos Recientes */}
         <div className="card">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Productos Recientes</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Productos Recientes</h3>
               <button 
                 onClick={handleShowAllProducts}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -836,18 +836,18 @@ const Dashboard = () => {
             {recentProducts.length > 0 ? (
               <div className="space-y-4">
                 {recentProducts.slice(0, 5).map((producto) => (
-                  <div key={producto.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div key={producto.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
+                      <h4 className="font-medium text-gray-900 dark:text-white">{producto.nombre}</h4>
                       <div className="flex items-center space-x-2 mt-1">
-                        <p className="text-sm text-gray-600">SKU: {producto.sku}</p>
-                        <span className="text-gray-400">•</span>
-                        <p className="text-sm text-gray-600">{producto.categoria}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">SKU: {producto.sku}</p>
+                        <span className="text-gray-400 dark:text-gray-500">•</span>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{producto.categoria}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">{producto.cantidadActual || 0}</p>
-                      <p className="text-xs text-gray-500">{formatRelativeDate(producto.fechaCreacion)}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{producto.cantidadActual || 0}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{formatRelativeDate(producto.fechaCreacion)}</p>
                     </div>
                   </div>
                 ))}
@@ -866,9 +866,9 @@ const Dashboard = () => {
 
         {/* Alertas de Stock */}
         <div className="card">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Alertas de Stock</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Alertas de Stock</h3>
               <AlertTriangle className="w-5 h-5 text-orange-600" />
             </div>
           </div>
@@ -876,14 +876,14 @@ const Dashboard = () => {
             {lowStockProducts.length > 0 ? (
               <div className="space-y-4">
                 {lowStockProducts.slice(0, 5).map((producto) => (
-                  <div key={producto.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div key={producto.id} className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50 rounded-lg">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{producto.nombre}</h4>
-                      <p className="text-sm text-gray-600">SKU: {producto.sku}</p>
+                      <h4 className="font-medium text-gray-900 dark:text-white">{producto.nombre}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">SKU: {producto.sku}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-orange-600">{producto.cantidadActual || 0}</p>
-                      <p className="text-xs text-orange-500">Min: {producto.cantidadMinima || 5}</p>
+                      <p className="font-semibold text-orange-600 dark:text-orange-400">{producto.cantidadActual || 0}</p>
+                      <p className="text-xs text-orange-500 dark:text-orange-400">Min: {producto.cantidadMinima || 5}</p>
                     </div>
                   </div>
                 ))}
@@ -903,9 +903,9 @@ const Dashboard = () => {
 
       {/* Actividad Reciente */}
       <div className="card">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Actividad Reciente</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Actividad Reciente</h3>
             <button 
               onClick={handleShowFullHistory}
               className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -919,31 +919,31 @@ const Dashboard = () => {
             <>
               {/* Vista de tabla para desktop */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="table-header">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                         Producto
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                         Tipo
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                         Cantidad
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                         Fecha
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {recentMovements.slice(0, 5).map((movimiento) => (
-                      <tr key={movimiento.id} className="hover:bg-gray-50">
+                      <tr key={movimiento.id} className="table-row">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {movimiento.productoNombre}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {movimiento.productoSKU}
                           </div>
                         </td>
